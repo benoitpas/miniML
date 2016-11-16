@@ -2,7 +2,6 @@
 
 package org.miniML.parser
 import org.scalatest.FunSuite
-import org.miniML.parser.ExpressionParser;
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
