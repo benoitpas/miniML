@@ -42,19 +42,19 @@ class ExpressionParserSuite extends FunSuite {
   }
   
   test("function test") {
-    val r = ep.parse(ep.expression, "fun a = a + 1")
+    val r = ep.parse(ep.expression, "fun a -> a + 1")
     val e = Fun(Identifier("a"),Sum(Identifier("a"),Integer(1)))
     assert(r.get == e, s"ExpressionParser")    
   }
 
   test("double function test") {
-    val r = ep.parse(ep.expression, "fun a = fun b = b + a")
+    val r = ep.parse(ep.expression, "fun a -> fun b -> b + a")
     val e = Fun(Identifier("a"), Fun(Identifier("b"), Sum(Identifier("b"), Identifier("a"))))
     assert(r.get == e, s"ExpressionParser")
   }
 
   test("function application 1") {
-    val r = ep.parse(ep.expression, "fun a = a + 1 2")
+    val r = ep.parse(ep.expression, "fun a -> a + 1 2")
     val e = FunApp1(Fun(Identifier("a"), Sum(Identifier("a"), Integer(1))), Integer(2))
     assert(r.get == e, s"ExpressionParser")
   }

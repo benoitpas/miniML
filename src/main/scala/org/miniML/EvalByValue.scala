@@ -22,6 +22,11 @@ object EvalByValue {
       }
       case Identifier(s: String) => env.getOrElse(Identifier(s), exp)
       case Let(id: Identifier, e1: Expression, e2: Expression) => eval(e2, env + (id -> eval(e1, env)))
+      case FunApp1(function: Fun, e: Expression) => eval(function.e, env + (function.variable -> e))
+      case FunApp2(function: Identifier, e: Expression) => env.get(function) match {
+        case Some(Fun(variable,eFun)) => eval(eFun,env+(variable -> eval(e,env)))
+        case _ => exp
+      }
       case _ => exp
     }
   }

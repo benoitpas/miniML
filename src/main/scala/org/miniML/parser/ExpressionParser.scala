@@ -10,7 +10,7 @@ class ExpressionParser extends RegexParsers {
   def factor = product | term
   def sum = factor ~ "+" ~ factor ^^ { case e1 ~ o ~ e2 => Sum(e1, e2) }
   def let = "let" ~ identifier ~ "=" ~ expression ~ "in" ~ expression ^^ { case _ ~ id ~ _ ~ e1 ~ _ ~ e2 => Let(id, e1, e2) }
-  def fun = "fun" ~ identifier ~ "=" ~ expression ^^ { case _ ~ variable ~ _ ~ e => Fun(variable,e) }
+  def fun = "fun" ~ identifier ~ "->" ~ expression ^^ { case _ ~ variable ~ _ ~ e => Fun(variable,e) }
   def funApp1 = fun ~ expression ^^ { case function ~ e => FunApp1(function,e) }
   def funApp2 = identifier ~ expression ^^ { case  id ~ e => FunApp2(id,e) }
   def expression: Parser[Expression] =  funApp1 | fun | let | funApp2 | sum | product | term

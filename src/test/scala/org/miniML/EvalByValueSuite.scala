@@ -45,4 +45,28 @@ class EvalByValueSuite extends FunSuite {
     val r = EvalByValue("let y=5+(4*v) in y+1")
     assert(r == Some(Sum(Sum(Integer(5),Product(Integer(4),Identifier("v"))),Integer(1))))
   }
+
+  test("simple function test") {
+      val r = EvalByValue( "fun a -> a + 1")
+    val e = Fun(Identifier("a"),Sum(Identifier("a"),Integer(1)))
+    assert(r.get == e, s"ExpressionParser")    
+  }
+
+  test("double function test") {
+    val r = EvalByValue("fun a -> fun b -> b + a")
+    val e = Fun(Identifier("a"), Fun(Identifier("b"), Sum(Identifier("b"), Identifier("a"))))
+    assert(r.get == e, s"ExpressionParser")
+  }
+
+  test("function application 1") {
+    val r = EvalByValue( "fun a -> a + 1 2")
+    val e = Integer(3)
+    assert(r.get == e, s"ExpressionParser")
+  }
+
+  test("function application 2") {
+    val r = EvalByValue("let coco = (fun x -> 2 * x) in coco 10+0")
+    val e = Integer(20)
+    assert(r.get == e, s"ExpressionParser")
+  }
 }
