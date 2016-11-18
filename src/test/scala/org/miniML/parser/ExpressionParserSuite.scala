@@ -41,6 +41,18 @@ class ExpressionParserSuite extends FunSuite {
     assert(r.get == e, s"ExpressionParser")
   }
   
+  test("simple ifz test") {
+    val r = ep.parse(ep.expression, "ifz 1 then 10 else 01")
+    val e = Ifz(Integer(1), Integer(10), Integer(0))
+    assert(r.get == e, s"ExpressionParser")    
+  }
+
+  test("ifz test with expressions") {
+    val r = ep.parse(ep.expression, "ifz 1 +1 then 10*2+5 else 10+5")
+    val e = Ifz(Sum(Integer(1),Integer(1)), Sum(Product(Integer(10),Integer(2)),Integer(5)), Sum(Integer(10),Integer(5)))
+    assert(r.get == e, s"ExpressionParser")    
+  }
+  
   test("function test") {
     val r = ep.parse(ep.expression, "fun a -> a + 1")
     val e = Fun(Identifier("a"),Sum(Identifier("a"),Integer(1)))
