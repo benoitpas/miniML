@@ -46,6 +46,21 @@ class EvalByValueSuite extends FunSuite {
     assert(r == Some(Sum(Sum(Integer(5),Product(Integer(4),Identifier("v"))),Integer(1))))
   }
 
+  test("simple ifz test") {
+    val r = EvalByValue("ifz 0 then 10 else 0")
+    assert(r.get == Integer(10))
+  }
+
+  test("ifz test with expressions") {
+    val r = EvalByValue("ifz 1 +1 then 10*2+5 else 10+5")
+    assert(r.get == Integer(15))
+  }
+  
+  test("ifz test with functions") {
+    val r = EvalByValue("ifz 0 then (fun x -> x + 1) else fun x->x*x")
+    assert(r.get == Fun(Identifier("x"),Sum(Identifier("x"),Integer(1))))
+  }
+ 
   test("simple function test") {
       val r = EvalByValue( "fun a -> a + 1")
     val e = Fun(Identifier("a"),Sum(Identifier("a"),Integer(1)))
