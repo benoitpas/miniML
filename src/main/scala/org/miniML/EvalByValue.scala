@@ -20,6 +20,10 @@ object EvalByValue {
         case (Integer(i1), Integer(i2)) => Integer(i1 + i2)
         case (e1,e2) => Sum(e1,e2)
       }
+      case Minus(e1: Expression, e2: Expression) => (eval(e1, env), eval(e2, env)) match {
+        case (Integer(i1), Integer(i2)) => Integer(i1 - i2)
+        case (e1,e2) => Minus(e1,e2)
+      }
       case Identifier(s: String) => env.getOrElse(Identifier(s), exp)
       case Let(id: Identifier, e1: Expression, e2: Expression) => eval(e2, env + (id -> eval(e1, env)))
       case Ifz( cExp: Expression,zExp: Expression, nzExp: Expression) => eval(cExp,env) match {

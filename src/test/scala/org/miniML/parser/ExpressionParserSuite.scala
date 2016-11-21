@@ -76,4 +76,16 @@ class ExpressionParserSuite extends FunSuite {
     assert(r.get == e, s"ExpressionParser")
   }
 
+  test("Y combinator (no lazy parsing)") {
+    val r = ep.parse(ep.expression, "fun f -> fun x -> f (x x) fun x -> f (x x)")
+    val e = Fun(Identifier("f"),FunApp1(Fun(Identifier("x"),FunApp2(Identifier("f"),FunApp2(Identifier("x"),Identifier("x")))),Fun(Identifier("x"),FunApp2(Identifier("f"),FunApp2(Identifier("x"),Identifier("x"))))))
+    assert(r.get == e, s"ExpressionParser")
+  }
+
+  test("iFactorial (to be used with Y combinator") {
+    val r = ep.parse(ep.expression, "fun n -> ifz n then 1 else (n * (f (n - 1)))")
+    val e = Integer(0)
+        //val e = Fun(Identifier("f"),FunApp1(Fun(Identifier("x"),FunApp2(Identifier("f"),FunApp2(Identifier("x"),Identifier("x")))),Fun(Identifier("x"),FunApp2(Identifier("f"),FunApp2(Identifier("x"),Identifier("x"))))))
+    assert(r.get == e, s"ExpressionParser")
+  }
 }

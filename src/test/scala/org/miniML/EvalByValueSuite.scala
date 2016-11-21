@@ -84,4 +84,15 @@ class EvalByValueSuite extends FunSuite {
     val e = Integer(20)
     assert(r.get == e, s"ExpressionParser")
   }
+  
+  
+  test("Y combinator") {
+    val yCombinator = EvalByValue("fun f -> fun x -> f (x x) fun x -> f (x x)")
+    val e1 = Fun(Identifier("f"), FunApp1(Fun(Identifier("x"), FunApp2(Identifier("f"), FunApp2(Identifier("x"), Identifier("x")))), Fun(Identifier("x"), FunApp2(Identifier("f"), FunApp2(Identifier("x"), Identifier("x"))))))
+    assert(yCombinator.get == e1, s"ExpressionParser")
+    //val iFactorial = EvalByValue("fun f ->fun n->ifz n then 1 else (n * (f (n-1)))")
+    //val iFactorial = Fun(Identifier("f"),Fun(Identifier("n"),Ifz(Identifier("n"),Integer(0),Product(Identifier("n"),FunApp2(Identifier("f"),Minus(Identifier("n"),Integer(1)))))))
+    //val f0 = FunApp1(FunApp1(e1,iFactorial),0)
+    //assert(iFactorial == Integer(0), s"ExpressionParser")
+  }
 }

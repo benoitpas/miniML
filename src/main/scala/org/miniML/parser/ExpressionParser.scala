@@ -20,6 +20,7 @@ class ExpressionParser extends RegexParsers {
 abstract trait Expression
 case class Product(e1: Expression, e2: Expression) extends Expression
 case class Sum(e1: Expression, e2: Expression) extends Expression
+case class Minus(e1: Expression, e2: Expression) extends Expression
 case class Identifier(s: String) extends Expression
 case class Integer(i: Int) extends Expression
 case class Let(id: Identifier, e1: Expression, e2: Expression) extends Expression
