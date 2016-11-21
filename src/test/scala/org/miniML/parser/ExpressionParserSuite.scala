@@ -83,9 +83,8 @@ class ExpressionParserSuite extends FunSuite {
   }
 
   test("iFactorial (to be used with Y combinator") {
-    val r = ep.parse(ep.expression, "fun n -> ifz n then 1 else (n * (f (n - 1)))")
-    val e = Integer(0)
-        //val e = Fun(Identifier("f"),FunApp1(Fun(Identifier("x"),FunApp2(Identifier("f"),FunApp2(Identifier("x"),Identifier("x")))),Fun(Identifier("x"),FunApp2(Identifier("f"),FunApp2(Identifier("x"),Identifier("x"))))))
+    val r = ep.parse(ep.expression, "fun n -> ifz n then 1 else n * (f (n - 1))")
+    val e = Fun(Identifier("n"),Ifz(Identifier("n"),Integer(1),Product(Identifier("n"),FunApp2(Identifier("f"),Minus(Identifier("n"),Integer(1))))))
     assert(r.get == e, s"ExpressionParser")
   }
 }
