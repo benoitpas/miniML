@@ -37,7 +37,7 @@ class EvalByValueSuite extends FunSuite {
   }
 
   test("simple nested let test") {
-    val r = EvalByValue("let v= 1 in let y=5+(4*v) in y+1")
+    val r = EvalByValue("let v= 1 in let y=5+4*v in y+1")
     assert(r == Some(Integer(10)))
   }
 
@@ -57,7 +57,7 @@ class EvalByValueSuite extends FunSuite {
   }
   
   test("ifz test with functions") {
-    val r = EvalByValue("ifz 0 then (fun x -> x + 1) else fun x->x*x")
+    val r = EvalByValue("ifz 0 then fun x -> x + 1 else fun x->x*x")
     assert(r.get == Fun(Identifier("x"),Sum(Identifier("x"),Integer(1))))
   }
  
@@ -80,7 +80,7 @@ class EvalByValueSuite extends FunSuite {
   }
 
   test("function application 2") {
-    val r = EvalByValue("let coco = (fun x -> 2 * x) in coco 10+0")
+    val r = EvalByValue("let coco = fun x -> 2 * x in coco 10+0")
     val e = Integer(20)
     assert(r.get == e, s"ExpressionParser")
   }

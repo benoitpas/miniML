@@ -41,6 +41,12 @@ class ExpressionParserSuite extends FunSuite {
     assert(r.get == e, s"ExpressionParser")
   }
   
+  test ("let in expression") {
+    val r = ep.parse(ep.expression, "5 * let y=5 in y+1")
+    val e = Product(Integer(5),Let(Identifier("y"),Integer(5), Sum(Identifier("y"),Integer(1))))
+    assert(r.get == e, s"ExpressionParser")    
+  }
+ 
   test("simple ifz test") {
     val r = ep.parse(ep.expression, "ifz 1 then 10 else 01")
     val e = Ifz(Integer(1), Integer(10), Integer(0))
@@ -52,7 +58,13 @@ class ExpressionParserSuite extends FunSuite {
     val e = Ifz(Sum(Integer(1),Integer(1)), Sum(Product(Integer(10),Integer(2)),Integer(5)), Sum(Integer(10),Integer(5)))
     assert(r.get == e, s"ExpressionParser")    
   }
-  
+
+  test("ifz in expression") {
+    val r = ep.parse(ep.expression, "5 * ifz 0 then 1 else 2")
+    val e = Product(Integer(5),Ifz(Integer(0),Integer(1),Integer(2)))
+    assert(r.get == e, s"ExpressionParser")
+  }
+ 
   test("function test") {
     val r = ep.parse(ep.expression, "fun a -> a + 1")
     val e = Fun(Identifier("a"),Sum(Identifier("a"),Integer(1)))

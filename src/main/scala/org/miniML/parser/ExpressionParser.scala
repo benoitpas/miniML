@@ -8,7 +8,7 @@ class ExpressionParser extends RegexParsers {
   def identifier = regex2("""[_\p{L}][_\p{L}\p{Nd}]*""".r) ^^ { case s => Identifier(s) }
   def integer = """(0|[1-9]\d*)""".r ^^ { case s => Integer(s.toInt) }
   def pterm = "(" ~ expression ~ ")" ^^ { case _ ~ e ~ _ => e }
-  def term: Parser[Expression] = identifier | integer | pterm
+  def term: Parser[Expression] = ifz | let | identifier | integer | pterm
   def product = term ~ "*" ~ term ^^ { case e1 ~ o ~ e2 => Product(e1, e2) }
   def factor = product | term
   def sum = factor ~ "+" ~ factor ^^ { case e1 ~ o ~ e2 => Sum(e1, e2) }
