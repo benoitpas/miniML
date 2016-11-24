@@ -48,8 +48,8 @@ class ExpressionParserSuite extends FunSuite {
   }
  
   test("simple ifz test") {
-    val r = ep.parse(ep.expression, "ifz 1 then 10 else 01")
-    val e = Ifz(Integer(1), Integer(10), Integer(0))
+    val r = ep.parse(ep.expression, "ifz 1 then 10 else 20")
+    val e = Ifz(Integer(1), Integer(10), Integer(20))
     assert(r.get == e, s"ExpressionParser")    
   }
 
@@ -79,24 +79,30 @@ class ExpressionParserSuite extends FunSuite {
 
   test("function application 1") {
     val r = ep.parse(ep.expression, "fun a -> a + 1 2")
-    val e = FunApp1(Fun(Identifier("a"), Sum(Identifier("a"), Integer(1))), Integer(2))
+    val e = FunApp(Fun(Identifier("a"), Sum(Identifier("a"), Integer(1))), Integer(2))
     assert(r.get == e, s"ExpressionParser")
   }
   test("function application 2") {
     val r = ep.parse(ep.expression, "coco 10+o")
-    val e = FunApp2(Identifier("coco"), Sum(Integer(10),Identifier("o")))
+    val e = FunApp(Identifier("coco"), Sum(Integer(10),Identifier("o")))
     assert(r.get == e, s"ExpressionParser")
   }
 
   test("Y combinator (no lazy parsing)") {
-    val r = ep.parse(ep.expression, "fun f -> fun x -> f (x x) fun x -> f (x x)")
-    val e = Fun(Identifier("f"),FunApp1(Fun(Identifier("x"),FunApp2(Identifier("f"),FunApp2(Identifier("x"),Identifier("x")))),Fun(Identifier("x"),FunApp2(Identifier("f"),FunApp2(Identifier("x"),Identifier("x"))))))
+    val r = ep.parse(ep.expression, "fun f -> (fun x -> f (x x)) fun x -> f (x x)")
+    val e = Fun(Identifier("f"),FunApp(Fun(Identifier("x"),FunApp(Identifier("f"),FunApp(Identifier("x"),Identifier("x")))),Fun(Identifier("x"),FunApp(Identifier("f"),FunApp(Identifier("x"),Identifier("x"))))))
+    assert(r.get == e, s"ExpressionParser")
+  }
+
+  test("Y combinator (for lazy parsing)") {
+    val r = ep.parse(ep.expression, "fun f -> f f")
+    val e = Fun(Identifier("f"),FunApp(Identifier("f"),Identifier("f")))
     assert(r.get == e, s"ExpressionParser")
   }
 
   test("iFactorial (to be used with Y combinator") {
     val r = ep.parse(ep.expression, "fun n -> ifz n then 1 else n * (f (n - 1))")
-    val e = Fun(Identifier("n"),Ifz(Identifier("n"),Integer(1),Product(Identifier("n"),FunApp2(Identifier("f"),Minus(Identifier("n"),Integer(1))))))
+    val e = Fun(Identifier("n"),Ifz(Identifier("n"),Integer(1),Product(Identifier("n"),FunApp(Identifier("f"),Minus(Identifier("n"),Integer(1))))))
     assert(r.get == e, s"ExpressionParser")
   }
 }

@@ -6,11 +6,12 @@ object EvalByValue {
   val parser = new ExpressionParser()
   
   def apply(s: String)= {
-    val r = parser.parse(parser.expression,s)
-    if (r.successful ) Some(eval(r.get,Map())) else None
+    val r = parser.parse(parser.expression, s)
+    if (r.successful) Some(eval(r.get, Map())) else None
   }
 
   def eval(exp: Expression, env: Map[Identifier, Expression]): Expression = {
+    println("eval("+exp+","+env)
     exp match {
       case Product(e1: Expression, e2: Expression) => (eval(e1, env), eval(e2, env)) match {
         case (Integer(i1), Integer(i2)) => Integer(i1 * i2)
@@ -31,9 +32,12 @@ object EvalByValue {
         case Integer(_) => eval(nzExp,env)
         case _ => exp
       }
-      case FunApp1(function: Fun, e: Expression) => eval(function.e, env + (function.variable -> e))
-      case FunApp2(function: Identifier, e: Expression) => env.get(function) match {
-        case Some(Fun(variable,eFun)) => eval(eFun,env+(variable -> eval(e,env)))
+      case FunApp(funExp: Expression, exp: Expression) => (eval(funExp, env),eval(exp,env)) match {
+        case (Fun(id1,funExp1),Fun(id2,funExp2)) => exp // TODO: combine the 2 functions into one
+        case (Fun(id,funExp),v) => {
+          println("eval("+funExp+","+env + (id -> v))
+          eval(funExp, env + (id -> v))
+        }
         case _ => exp
       }
       case _ => exp
