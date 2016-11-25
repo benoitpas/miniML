@@ -40,13 +40,30 @@ class ExpressionParser extends RegexParsers {
 }
 
 abstract trait Expression
-case class Product(e1: Expression, e2: Expression) extends Expression
-case class Sum(e1: Expression, e2: Expression) extends Expression
-case class Minus(e1: Expression, e2: Expression) extends Expression
-case class Identifier(s: String) extends Expression
-case class Integer(i: Int) extends Expression
-case class Let(id: Identifier, e1: Expression, e2: Expression) extends Expression
-case class Ifz(cExp:Expression, zExp:Expression, nZExp:Expression) extends Expression
-case class Fun(variable: Identifier, e: Expression) extends Expression
-case class FunApp(funExp: Expression, exp: Expression) extends Expression
-case class Combine(f: Fun, g: Fun) extends Expression
+case class Product(e1: Expression, e2: Expression) extends Expression {
+  override def toString() = e1 + " * " + e2
+}
+case class Sum(e1: Expression, e2: Expression) extends Expression {
+  override def toString() = e1 + " + " + e2  
+}
+case class Minus(e1: Expression, e2: Expression) extends Expression {
+  override def toString() = e1 + " - " + e2  
+}
+case class Identifier(s: String) extends Expression {
+  override def toString() = s  
+}
+case class Integer(i: Int) extends Expression {
+  override def toString() = i.toString()  
+}
+case class Let(id: Identifier, e1: Expression, e2: Expression) extends Expression {
+  override def toString() = "let " + id + " = " + e1 + " in " + e2
+}
+case class Ifz(cExp:Expression, zExp:Expression, nZExp:Expression) extends Expression {
+  override def toString() = "ifz " + cExp + " then " + zExp + " else " + nZExp
+}
+case class Fun(variable: Identifier, e: Expression) extends Expression {
+  override def toString() = "fun " + variable + " -> " + e
+}
+case class FunApp(funExp: Expression, exp: Expression) extends Expression {
+  override def toString() = "(" + funExp + " " + exp + ")"
+}
