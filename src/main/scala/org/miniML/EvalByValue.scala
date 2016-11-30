@@ -14,7 +14,7 @@ object EvalByValue {
   }
 
   def eval(exp: Expression, env: Map[Identifier, Expression]): Expression = {
-    println("eval("+exp+","+env)
+    println("eval("+exp+", "+env+")")
     exp match {
       case Product(e1: Expression, e2: Expression) => (eval(e1, env), eval(e2, env)) match {
         case (Integer(i1), Integer(i2)) => Integer(i1 * i2)
@@ -37,8 +37,8 @@ object EvalByValue {
       }
       case FunApp(funExp: Expression, exp: Expression) => (eval(funExp, env), eval(exp, env)) match {
         case (Fun(id1, funExp1), Fun(id2, funExp2)) => replace(funExp1, id1, Fun(id2, funExp2))
-        case (Fun(id, funExp), v) => eval(funExp, env + (id -> v))
-        case _ => exp
+        case (Fun(id, funExp), v)                   => eval(funExp, env + (id -> v))
+        case _                                      => exp
       }
       case _ => exp
     }

@@ -120,7 +120,6 @@ class EvalByValueSuite extends FunSuite {
       "let id = fun x -> x in let iFact = fun f -> fun n -> ifz n then 1 else (n * (f (n-1))) in (iFact (iFact (iFact (iFact id)))) 3")
     assert(fact3.get == Integer(6))
 
-
   }
 
   test("Y combinator") {
@@ -132,7 +131,7 @@ class EvalByValueSuite extends FunSuite {
     assert(iFactorial == Some(e2), s"ExpressionParser")
     val fact = FunApp(yCombinator.get, iFactorial.get)
     println
-    val fact1 = EvalByValue.eval(FunApp(fact, Integer(0)), Map())
+    val fact1 = EvalByValue.eval(FunApp(fact, Integer(1)), Map())
     assert(fact1 == Integer(1))
     val fact5 = EvalByValue.eval(FunApp(fact, Integer(5)), Map())
     assert(fact5 == Integer(1 * 2 * 3 * 4 * 5))
