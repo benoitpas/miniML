@@ -37,7 +37,7 @@ class EvalByValueSuite extends FunSuite {
   }
 
   test("simple nested let test") {
-    val r = EvalByValue("let v= 1 in let y=5+(4*v) in y+1")
+    val r = EvalByValue("let v= 1 in let y=5+4*v in y+1")
     assert(r == Some(Integer(10)))
   }
 
@@ -57,7 +57,7 @@ class EvalByValueSuite extends FunSuite {
   }
   
   test("ifz test with functions") {
-    val r = EvalByValue("ifz 0 then (fun x -> x + 1) else fun x->x*x")
+    val r = EvalByValue("ifz 0 then fun x -> x + 1 else fun x->x*x")
     assert(r.get == Fun(Identifier("x"),Sum(Identifier("x"),Integer(1))))
   }
  
@@ -80,19 +80,61 @@ class EvalByValueSuite extends FunSuite {
   }
 
   test("function application 2") {
-    val r = EvalByValue("let coco = (fun x -> 2 * x) in coco 10+0")
+    val r = EvalByValue("let coco = fun x -> 2 * x in coco 10+0")
     val e = Integer(20)
     assert(r.get == e, s"ExpressionParser")
   }
   
-  
+  test("combining simple functions 1") {
+    val r = EvalByValue("let f = fun x -> x * 2 in let g = fun x -> x + 1 in (f g 1) + (g f 1)") 
+    val e = Integer(4+3)
+    assert(r.get == e, s"ExpressionParser")
+  }
+
+  test("combining simple functions 2") {
+    val r = EvalByValue("let f = fun x -> x * 2 in let g = fun x -> x + 1 in f g 1")
+    val e = Integer(4)
+    assert(r.get == e, s"ExpressionParser")
+  }
+
+  test("combine functions") {
+    val r = EvalByValue("let f = fun x -> x * 2 in let g = fun x -> x + 1 in let combine = fun f1 -> fun f2 -> fun x -> (f1 (f2 x)) in ((combine g) f) 1")
+    val e = Integer(3)
+    assert(r.get == e, s"ExpressionParser")
+  }
+
+  test("iFactorial test") {
+    val fact0 = EvalByValue(
+      "let id = fun x -> x in let iFact = fun f -> fun n -> ifz n then 1 else (n * (f (n-1))) in ((iFact id) 0)")
+    assert(fact0.get == Integer(1))
+ 
+   val fact1 = EvalByValue(
+      "let id = fun x -> x in let iFact = fun f -> fun n -> ifz n then 1 else (n * (f (n-1))) in (iFact (iFact id)) 1")
+    assert(fact1.get == Integer(1))
+
+   val fact2 = EvalByValue(
+      "let id = fun x -> x in let iFact = fun f -> fun n -> ifz n then 1 else (n * (f (n-1))) in (iFact (iFact (iFact id))) 2")
+    assert(fact2.get == Integer(2))
+    
+   val fact3 = EvalByValue(
+      "let id = fun x -> x in let iFact = fun f -> fun n -> ifz n then 1 else (n * (f (n-1))) in (iFact (iFact (iFact (iFact id)))) 3")
+    assert(fact3.get == Integer(6))
+
+
+  }
+
   test("Y combinator") {
-    val yCombinator = EvalByValue("fun f -> fun x -> f (x x) fun x -> f (x x)")
-    val e1 = Fun(Identifier("f"), FunApp1(Fun(Identifier("x"), FunApp2(Identifier("f"), FunApp2(Identifier("x"), Identifier("x")))), Fun(Identifier("x"), FunApp2(Identifier("f"), FunApp2(Identifier("x"), Identifier("x"))))))
+    val yCombinator = EvalByValue("fun f -> (fun x -> f (x x)) fun x -> f (x x)")
+    val e1 = Fun(Identifier("f"), FunApp(Fun(Identifier("x"), FunApp(Identifier("f"), FunApp(Identifier("x"), Identifier("x")))), Fun(Identifier("x"), FunApp(Identifier("f"), FunApp(Identifier("x"), Identifier("x"))))))
     assert(yCombinator.get == e1, s"ExpressionParser")
-    //val iFactorial = EvalByValue("fun f ->fun n->ifz n then 1 else (n * (f (n-1)))")
-    //val iFactorial = Fun(Identifier("f"),Fun(Identifier("n"),Ifz(Identifier("n"),Integer(0),Product(Identifier("n"),FunApp2(Identifier("f"),Minus(Identifier("n"),Integer(1)))))))
-    //val f0 = FunApp1(FunApp1(e1,iFactorial),0)
-    //assert(iFactorial == Integer(0), s"ExpressionParser")
+    val iFactorial = EvalByValue("fun f2 -> fun n -> ifz n then 1 else (n * (f2 (n-1)))")
+    val e2 = Fun(Identifier("f2"),Fun(Identifier("n"),Ifz(Identifier("n"),Integer(1),Product(Identifier("n"),FunApp(Identifier("f2"),Minus(Identifier("n"),Integer(1)))))))
+    assert(iFactorial == Some(e2), s"ExpressionParser")
+    val fact = FunApp(yCombinator.get, iFactorial.get)
+    println
+    val fact1 = EvalByValue.eval(FunApp(fact, Integer(0)), Map())
+    assert(fact1 == Integer(1))
+    val fact5 = EvalByValue.eval(FunApp(fact, Integer(5)), Map())
+    assert(fact5 == Integer(1 * 2 * 3 * 4 * 5))
   }
 }
