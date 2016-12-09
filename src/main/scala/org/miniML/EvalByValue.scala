@@ -14,7 +14,6 @@ object EvalByValue {
   }
 
   def eval(exp: Expression, env: Map[Identifier, Expression]): Expression = {
-    println("eval("+exp+", "+env+")")
     exp match {
       case Product(e1: Expression, e2: Expression) => (eval(e1, env), eval(e2, env)) match {
         case (Integer(i1), Integer(i2)) => Integer(i1 * i2)
@@ -36,25 +35,35 @@ object EvalByValue {
         case _ => exp
       }
       case FunApp(funExp: Expression, exp: Expression) => (eval(funExp, env), eval(exp, env)) match {
-        case (Fun(id1, funExp1), Fun(id2, funExp2)) => replace(funExp1, id1, Fun(id2, funExp2))
-        case (Fun(id, funExp), v)                   => eval(funExp, env + (id -> v))
-        case _                                      => exp
+        case (Fun(id1, funExp1), Fun(id2, funExp2)) => {
+          val r = replaceAll(funExp1, id1, Fun(id2, funExp2)); println("r=" + r.toString());
+          r
+        }
+        case (Fun(id, funExp), v) => eval(funExp, env + (id -> v))
+        case x                                      => {println("x="+x.toString()) ; exp }
       }
       case _ => exp
     }
   }
 
-  def replace(funExp1: Expression, id1: Identifier, fun2: Expression): Expression = {
+  def replace(funExp1: Expression, id1: Identifier, exp2: Expression): Expression = {
     funExp1 match {
-      case Product(e1, e2)                           => Product(replace(e1, id1, fun2), replace(e2, id1, fun2))
-      case Sum(e1, e2)                               => Sum(replace(e1, id1, fun2), replace(e2, id1, fun2))
-      case Minus(e1, e2)                             => Minus(replace(e1, id1, fun2), replace(e2, id1, fun2))
-      case Identifier(id) if (Identifier(id) == id1) => fun2
-      case Let(id, idExp, exp)                       => Let(id, replace(idExp, id1, fun2), if (id != id1) replace(exp, id1, fun2) else exp)
-      case Ifz(cExp, zExp, nzExp)                    => Ifz(replace(cExp, id1, fun2), replace(zExp, id1, fun2), replace(nzExp, id1, fun2))
-      case FunApp(e1, e2)                            => FunApp(replace(e1, id1, fun2), replace(e2, id1, fun2))
-      case Fun(id, funExp) if (id != id1)            => Fun(id, replace(funExp, id1, fun2))
+      case Product(e1, e2)                           => Product(replace(e1, id1, exp2), replace(e2, id1, exp2))
+      case Sum(e1, e2)                               => Sum(replace(e1, id1, exp2), replace(e2, id1, exp2))
+      case Minus(e1, e2)                             => Minus(replace(e1, id1, exp2), replace(e2, id1, exp2))
+      case Identifier(id) if (Identifier(id) == id1) => exp2
+      case Let(id, idExp, exp)                       => Let(id, replace(idExp, id1, exp2), if (id != id1) replace(exp, id1, exp2) else exp)
+      case Ifz(cExp, zExp, nzExp)                    => Ifz(replace(cExp, id1, exp2), replace(zExp, id1, exp2), replace(nzExp, id1, exp2))
+      case FunApp(e1, e2)                            => FunApp(replace(e1, id1, exp2), replace(e2, id1, exp2))
+      case Fun(id, funExp) if (id != id1)            => Fun(id, replace(funExp, id1, exp2))
       case _                                         => funExp1
+    }
+  }
+
+  def replaceAll(funExp1: Expression, id1: Identifier, exp2: Expression): Expression = {
+    replace(funExp1, id1, exp2) match {
+      case FunApp(Fun(id1, funExp1), e2) => replaceAll(funExp1, id1, e2)
+      case x                             => x
     }
   }
 

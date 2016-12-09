@@ -131,9 +131,21 @@ class EvalByValueSuite extends FunSuite {
     assert(iFactorial == Some(e2), s"ExpressionParser")
     val fact = FunApp(yCombinator.get, iFactorial.get)
     println
+    val fact0 = EvalByValue.eval(FunApp(fact, Integer(0)), Map())
+    assert(fact0 == Integer(1))
     val fact1 = EvalByValue.eval(FunApp(fact, Integer(1)), Map())
     assert(fact1 == Integer(1))
     val fact5 = EvalByValue.eval(FunApp(fact, Integer(5)), Map())
     assert(fact5 == Integer(1 * 2 * 3 * 4 * 5))
+  }
+  
+  test("power function") {
+//    val p23=EvalByValue("let Y = ((fun f -> (fun x -> f (x x))) fun x -> f (x x)) in " +
+//        "let power = (Y (fun f -> (fun n -> (fun p -> ifz p then 1 else n * f (p-1))))) in " +
+//        "(power 2) 3")
+    val yCombinator = EvalByValue("fun f -> (fun x -> f (x x)) fun x -> f (x x)")
+    val iPower = EvalByValue("fun f2 -> (fun n -> (fun p -> ifz p then 1 else n * (f2 (p-1))))")
+    val p23 = EvalByValue.eval(FunApp(FunApp(FunApp(yCombinator.get,iPower.get),Integer(2)),Integer(3)), Map())
+    assert(p23 == Integer(2*2*2))    
   }
 }

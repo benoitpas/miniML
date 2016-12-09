@@ -65,5 +65,5 @@ case class Fun(variable: Identifier, e: Expression) extends Expression {
   override def toString() = "fun " + variable + " -> " + e
 }
 case class FunApp(funExp: Expression, exp: Expression) extends Expression {
-  override def toString() = "(" + funExp + " " + exp + ")"
+//  override def toString() = "(" + funExp + " " + exp + ")"
 }
