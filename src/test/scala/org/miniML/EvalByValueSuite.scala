@@ -140,12 +140,15 @@ class EvalByValueSuite extends FunSuite {
   }
   
   test("power function") {
-//    val p23=EvalByValue("let Y = ((fun f -> (fun x -> f (x x))) fun x -> f (x x)) in " +
-//        "let power = (Y (fun f -> (fun n -> (fun p -> ifz p then 1 else n * f (p-1))))) in " +
-//        "(power 2) 3")
     val yCombinator = EvalByValue("fun f -> (fun x -> f (x x)) fun x -> f (x x)")
-    val iPower = EvalByValue("fun f2 -> (fun n -> (fun p -> ifz p then 1 else n * (f2 (p-1))))")
-    val p23 = EvalByValue.eval(FunApp(FunApp(FunApp(yCombinator.get,iPower.get),Integer(2)),Integer(3)), Map())
+    val iPower = EvalByValue("fun n -> (fun f2 -> (fun p -> ifz p then 1 else n * (f2 (p-1))))")
+ //   val power23 = EvalByValue("let yCombinator = fun f -> (fun x -> f (x x)) fun x -> f (x x) in "
+ //       + "let iPower = fun n -> (fun f2 -> (fun p -> ifz p then 1 else n * (f2 (p-1)))) in "
+ //       + "let power = fun n -> (fun p -> (yCombinator (iPower n) p)) in "
+ //       + "((power 2 ) 3)")
+    val p23 = EvalByValue.eval(
+                Let(Identifier("power"), Fun(Identifier("n"), Fun(Identifier("p"),FunApp(FunApp(yCombinator.get,FunApp(iPower.get,Identifier("n"))),Identifier("p")))),
+                    FunApp(FunApp(Identifier("power"),Integer(2)),Integer(3))), Map())
     assert(p23 == Integer(2*2*2))    
   }
 }

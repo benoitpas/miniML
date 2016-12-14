@@ -42,7 +42,22 @@ object EvalByValue {
         case (Fun(id, funExp), v) => eval(funExp, env + (id -> v))
         case x                                      => {println("x="+x.toString()) ; exp }
       }
+      case Fun(id,funExp) => Fun(id,replace(funExp,env,Set(id)))
       case _ => exp
+    }
+  }
+
+  def replace(funExp1: Expression, env: Map[Identifier, Expression], tiedVars: Set[Identifier]): Expression = {
+    funExp1 match {
+      case Product(e1, e2) => Product(replace(e1, env, tiedVars), replace(e2, env, tiedVars))
+      case Sum(e1, e2) => Sum(replace(e1, env, tiedVars), replace(e2, env, tiedVars))
+      case Minus(e1, e2) => Minus(replace(e1, env, tiedVars), replace(e2, env, tiedVars))
+      case Identifier(id2) if (!tiedVars.contains(Identifier(id2)) && env.contains(Identifier(id2))) => env(Identifier(id2))
+      case Let(id, idExp, exp) => Let(id, replace(idExp, env, tiedVars), replace(exp, env, tiedVars + id))
+      case Ifz(cExp, zExp, nzExp) => Ifz(replace(cExp, env, tiedVars), replace(zExp, env, tiedVars), replace(nzExp, env, tiedVars))
+      case FunApp(e1, e2) => FunApp(replace(e1, env, tiedVars), replace(e2, env, tiedVars))
+      case Fun(id, funExp) => Fun(id, replace(funExp, env, tiedVars + id))
+      case _ => funExp1
     }
   }
 
