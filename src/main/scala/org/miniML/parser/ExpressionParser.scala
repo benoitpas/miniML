@@ -1,7 +1,9 @@
 package org.miniML.parser
 
+import scala.language.implicitConversions
 import scala.util.matching.Regex
 import scala.util.parsing.combinator.RegexParsers
+
 
 class ExpressionParser extends RegexParsers {
   def keywords = Set("let", "in", "fun", "ifz", "then", "else")
@@ -53,7 +55,10 @@ case class Identifier(s: String) extends Expression {
   override def toString() = s  
 }
 case class Integer(i: Int) extends Expression {
-  override def toString() = i.toString()  
+  override def toString() = i.toString()
+}
+object Integer {
+    implicit def int2Integer(x: Int): Integer = new Integer(x)
 }
 case class Let(id: Identifier, e1: Expression, e2: Expression) extends Expression {
   override def toString() = "let " + id + " = " + e1 + " in " + e2
@@ -67,3 +72,5 @@ case class Fun(variable: Identifier, e: Expression) extends Expression {
 case class FunApp(funExp: Expression, exp: Expression) extends Expression {
 //  override def toString() = "(" + funExp + " " + exp + ")"
 }
+
+
