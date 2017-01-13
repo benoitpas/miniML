@@ -41,7 +41,9 @@ class ExpressionParser extends RegexParsers {
   }
 }
 
-abstract trait Expression
+abstract trait Expression {
+//  implicit def int2Expression(x: Int): Expression = int2Integer(x: Int)
+}
 case class Product(e1: Expression, e2: Expression) extends Expression {
   override def toString() = e1 + " * " + e2
 }
@@ -54,11 +56,14 @@ case class Minus(e1: Expression, e2: Expression) extends Expression {
 case class Identifier(s: String) extends Expression {
   override def toString() = s  
 }
+object Identifier {
+  implicit def int2Identifier(s: String): Identifier = new Identifier(s)
+}
 case class Integer(i: Int) extends Expression {
   override def toString() = i.toString()
 }
 object Integer {
-    implicit def int2Integer(x: Int): Integer = new Integer(x)
+  implicit def int2Integer(x: Int): Integer = new Integer(x)
 }
 case class Let(id: Identifier, e1: Expression, e2: Expression) extends Expression {
   override def toString() = "let " + id + " = " + e1 + " in " + e2
