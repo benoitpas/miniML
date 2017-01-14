@@ -33,13 +33,15 @@ object Eval {
         case (e1,e2) => Minus(e1,e2)
       }
       case Identifier(s: String) => env.getOrElse(Identifier(s), exp)
-      case Let(id: Identifier, e1: Expression, e2: Expression) => eval(e2, env + (id -> eval(e1, env, mode)), mode)
-      case Ifz( cExp: Expression,zExp: Expression, nzExp: Expression) => eval(cExp,env,mode) match {
+      case Let(id: Identifier, e1: Expression, e2: Expression) if mode == Eval.ByValue => eval(e2, env + (id -> eval(e1, env, mode)), mode)
+      case Let(id: Identifier, e1: Expression, e2: Expression) => eval(replaceAll(e2, id, e1), env, mode)
+      case Ifz(cExp: Expression, zExp: Expression, nzExp: Expression) => eval(cExp, env, mode) match {
         case Integer(0) => eval(zExp, env, mode)
         case Integer(_) => eval(nzExp, env, mode)
         case _          => exp
       }
-      case FunApp(funExp: Expression, exp: Expression) => (eval(funExp, env, mode), eval(exp, env, mode)) match {
+      // Evaluation by Value
+      case FunApp(funExp: Expression, exp: Expression)  if mode == Eval.ByValue => (eval(funExp, env, mode), eval(exp, env, mode)) match {
         case (Fun(id1, funExp1), Fun(id2, funExp2)) => {
           val r = replaceAll(funExp1, id1, Fun(id2, funExp2)); println("r=" + r.toString());
           r
@@ -47,7 +49,15 @@ object Eval {
         case (Fun(id, funExp), v) => eval(funExp, env + (id -> v), mode)
         case x                    => { println("x=" + x.toString()); exp }
       }
-      case Fun(id,funExp) => Fun(id,replace(funExp,env,Set(id)))
+      // Evaluation by Name
+      case FunApp(funExp: Expression, exp: Expression) => (eval(funExp, env, mode), exp) match {
+        case (Fun(id1, funExp1), exp2) => {
+          val r = replaceAll(funExp1, id1, exp2); println("r=" + r.toString());
+          eval(r, env, mode)
+        }
+        case x => { println("x=" + x.toString()); exp }
+      }
+      case Fun(id, funExp) => Fun(id, replace(funExp, env, Set(id)))
       case _ => exp
     }
   }

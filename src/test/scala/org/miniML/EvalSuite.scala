@@ -14,12 +14,18 @@ import org.miniML.parser.Identifier._
 @RunWith(classOf[JUnitRunner])
 class EvalSuite extends FunSuite {
 
-  def check(e: String, exp: Expression) = {
-    val r1 = Eval(e, Eval.ByName)
-    val r2 = Eval(e, Eval.ByValue)
-    assert(r1 == Some(exp))
-    assert(r2 == Some(exp))
+  def check(e: String, exp: Expression, mode:Option[Eval.Mode] = None) = {
+    if (mode == None || mode == Some(Eval.ByName)) {
+      val r1 = Eval(e, Eval.ByName)
+      assert(r1 == Some(exp))
+    }
+    if (mode == None || mode == Some(Eval.ByValue)) {
+      val r2 = Eval(e, Eval.ByValue)
+      assert(r2 == Some(exp))
+    }
   }
+
+  def check(e: String, i: Int): Unit = check(e, i, None)
   
   test("addition") {
     check("5+4", 9)
@@ -39,6 +45,10 @@ class EvalSuite extends FunSuite {
 
   test("simple let test") {
     check("let y=5+(4*0) in y+1", 6)
+  }
+
+  test("simple let test (call by name)") {
+    check("let f = fun x-> (x x) in let v = f f in 1", 1, Some(Eval.ByName))
   }
 
   test("simple nested let test") {
@@ -76,7 +86,11 @@ class EvalSuite extends FunSuite {
   test("function application 2") {
     check("let coco = fun x -> 2 * x in coco 10+0",20)
   }
-  
+
+  test("function for call by name") {
+    check("let f1 = fun a -> 1 in let f2 = fun x-> (x x) in 2 + (f1 (f2 f2))", 3, Some(Eval.ByName))
+  }
+
   test("combining simple functions 1") {
     check("let f = fun x -> x * 2 in let g = fun x -> x + 1 in (f g 1) + (g f 1)", 4 + 3)
   }
