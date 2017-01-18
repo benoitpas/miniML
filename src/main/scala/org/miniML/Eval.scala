@@ -2,46 +2,21 @@ package org.miniML
 
 import org.miniML.parser._
 
-object Eval {
+object Eval extends EvalCommon {
 
-  sealed trait Mode
-  case object ByValue extends Mode
-  case object ByName extends Mode
-  
-  val parser = new ExpressionParser()
+  type Env = Map[Identifier, Expression]
 
-  def apply(s: String, mode: Mode = ByValue) = {
-    val r = parser.parse(parser.expression, s)
-    if (r.successful) Some(eval(r.get, Map(), mode)) else {
-      println(r.toString())
-      None
-    }
-  }
+  def newEnv() = Map()
 
-  def eval(exp: Expression, env: Map[Identifier, Expression], mode:Mode): Expression = {
-    exp match {
-      case Product(e1: Expression, e2: Expression) => (eval(e1, env, mode), eval(e2, env, mode)) match {
-        case (Integer(i1), Integer(i2)) => Integer(i1 * i2)
-        case (e1,e2) => Product(e1,e2)
-      }
-      case Sum(e1: Expression, e2: Expression) => (eval(e1, env, mode), eval(e2, env, mode)) match {
-        case (Integer(i1), Integer(i2)) => Integer(i1 + i2)
-        case (e1,e2) => Sum(e1,e2)
-      }
-      case Minus(e1: Expression, e2: Expression) => (eval(e1, env, mode), eval(e2, env, mode)) match {
-        case (Integer(i1), Integer(i2)) => Integer(i1 - i2)
-        case (e1,e2) => Minus(e1,e2)
-      }
-      case Identifier(s: String) => env.getOrElse(Identifier(s), exp)
-      case Let(id: Identifier, e1: Expression, e2: Expression) if mode == Eval.ByValue => eval(e2, env + (id -> eval(e1, env, mode)), mode)
-      case Let(id: Identifier, e1: Expression, e2: Expression) => eval(replaceAll(e2, id, e1), env, mode)
-      case Ifz(cExp: Expression, zExp: Expression, nzExp: Expression) => eval(cExp, env, mode) match {
-        case Integer(0) => eval(zExp, env, mode)
-        case Integer(_) => eval(nzExp, env, mode)
-        case _          => exp
-      }
-      // Evaluation by Value
-      case FunApp(funExp: Expression, exp: Expression)  if mode == Eval.ByValue => (eval(funExp, env, mode), eval(exp, env, mode)) match {
+  def identifier(s: String, env: Env, mode: Mode) = env.getOrElse(Identifier(s), Identifier(s))
+
+  def let(id: Identifier, e1: Expression, e2: Expression, env: Env, mode: Mode) = if (mode == Eval.ByValue)
+    eval(e2, env + (id -> eval(e1, env, mode)), mode)
+  else
+    eval(replaceAll(e2, id, e1), env, mode)
+    
+  def funApp(funExp: Expression, exp: Expression, env: Env, mode: Mode) = if (mode == Eval.ByValue )
+    (eval(funExp, env, mode), eval(exp, env, mode)) match {
         case (Fun(id1, funExp1), Fun(id2, funExp2)) => {
           val r = replaceAll(funExp1, id1, Fun(id2, funExp2)); println("r=" + r.toString());
           r
@@ -49,19 +24,17 @@ object Eval {
         case (Fun(id, funExp), v) => eval(funExp, env + (id -> v), mode)
         case x                    => { println("x=" + x.toString()); exp }
       }
-      // Evaluation by Name
-      case FunApp(funExp: Expression, exp: Expression) => (eval(funExp, env, mode), exp) match {
+  else
+    (eval(funExp, env, mode), exp) match {
         case (Fun(id1, funExp1), exp2) => {
           val r = replaceAll(funExp1, id1, exp2); println("r=" + r.toString());
           eval(r, env, mode)
         }
         case x => { println("x=" + x.toString()); exp }
       }
-      case Fun(id, funExp) => Fun(id, replace(funExp, env, Set(id)))
-      case _ => exp
-    }
-  }
 
+  def fun(id: Identifier, funExp: Expression, env: Env, mode: Mode) = Fun(id, replace(funExp, env, Set(id)))
+  
   def replace(funExp1: Expression, env: Map[Identifier, Expression], tiedVars: Set[Identifier]): Expression = {
     funExp1 match {
       case Product(e1, e2) => Product(replace(e1, env, tiedVars), replace(e2, env, tiedVars))
