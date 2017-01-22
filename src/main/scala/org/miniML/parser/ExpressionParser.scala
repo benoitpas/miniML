@@ -6,11 +6,11 @@ import scala.util.parsing.combinator.RegexParsers
 
 
 class ExpressionParser extends RegexParsers {
-  def keywords = Set("let", "in", "fun", "ifz", "then", "else")
+  def keywords = Set("let", "in", "fun", "ifz", "then", "else","fix")
   def identifier = regex2("""[_\p{L}][_\p{L}\p{Nd}]*""".r) ^^ { case s => Identifier(s) }
   def integer = """(0|[1-9]\d*)""".r ^^ { case s => Integer(s.toInt) }
   def pterm = "(" ~ expression ~ ")" ^^ { case _ ~ e ~ _ => e }
-  def term: Parser[Expression] = fun | ifz | let | identifier | integer | pterm
+  def term: Parser[Expression] = fix | fun | ifz | let | identifier | integer | pterm
   def product = term ~ "*" ~ term ^^ { case e1 ~ o ~ e2 => Product(e1, e2) }
   def factor = product | term
   def sum = factor ~ "+" ~ factor ^^ { case e1 ~ o ~ e2 => Sum(e1, e2) }
@@ -18,9 +18,10 @@ class ExpressionParser extends RegexParsers {
   def let = "let" ~ identifier ~ "=" ~ expression ~ "in" ~ expression ^^ { case _ ~ id ~ _ ~ e1 ~ _ ~ e2 => Let(id, e1, e2) }
   def ifz ="ifz" ~ expression ~ "then" ~ expression ~ "else" ~ expression ^^ { case _ ~ cExp ~ _ ~ zExp ~ _ ~ nZExp => Ifz(cExp, zExp, nZExp) }
   def fun = "fun" ~ identifier ~ "->" ~ expression ^^ { case _ ~ variable ~ _ ~ e => Fun(variable,e) }
+  def fix = "fix" ~ identifier ~ expression ^^ { case _ ~ variable ~ e => Fix(variable,e) }
   def funApp = term ~ expression ^^ { case funExp ~ e => FunApp(funExp,e) }
 
-  def expression: Parser[Expression] =  funApp | fun | ifz | let | sum | minus | product | term
+  def expression: Parser[Expression] =  funApp | fix | fun | ifz | let | sum | minus | product | term
 
  
   def regex2(r: Regex): Parser[String] = new Parser[String] {
@@ -74,6 +75,11 @@ case class Ifz(cExp:Expression, zExp:Expression, nZExp:Expression) extends Expre
 case class Fun(variable: Identifier, e: Expression) extends Expression {
   override def toString() = "fun " + variable + " -> " + e
 }
+
+case class Fix(variable: Identifier, e: Expression) extends Expression {
+  override def toString() = "fix " + variable + " " + e
+}
+
 case class FunApp(funExp: Expression, exp: Expression) extends Expression {
 //  override def toString() = "(" + funExp + " " + exp + ")"
 }

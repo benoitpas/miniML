@@ -5,6 +5,9 @@ import org.scalatest.FunSuite
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
+import org.miniML.parser.Integer._
+import org.miniML.parser.Identifier._
+
 @RunWith(classOf[JUnitRunner])
 class ExpressionParserSuite extends FunSuite {
 
@@ -101,8 +104,14 @@ class ExpressionParserSuite extends FunSuite {
   }
 
   test("iFactorial (to be used with Y combinator") {
-    val r = ep.parse(ep.expression, "fun n -> ifz n then 1 else n * (f (n - 1))")
+    val r = ep.parse(ep.expression, "fun n -> (ifz n then 1 else (n * (f (n - 1))))")
     val e = Fun(Identifier("n"),Ifz(Identifier("n"),Integer(1),Product(Identifier("n"),FunApp(Identifier("f"),Minus(Identifier("n"),Integer(1))))))
     assert(r.get == e, s"ExpressionParser")
+  }
+
+  test("fix function)") {
+    val r = ep.parse(ep.expression, "fix f fun n -> (ifz n then 1 else (n * f (n -1)))")
+    val e = Fix("f", Fun("n", Ifz("n", 1, Product("n", FunApp("f",Minus("n", 1))))))
+    assert(r.get == e)
   }
 }

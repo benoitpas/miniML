@@ -24,6 +24,7 @@ trait EvalCommon {
   def let(id: Identifier, e1: Expression, e2: Expression, env: Env, mode: Mode): Expression
   def funApp(funExp: Expression, exp: Expression, env: Env, mode: Mode): Expression
   def fun(id: Identifier, funExp: Expression, env: Env, mode: Mode): Expression
+  def fix(fid: Identifier, id: Identifier, funExp: Expression, env: Env, mode: Mode): Expression
 
   def eval(exp: Expression, env: Env, mode: Mode): Expression = {
     exp match {
@@ -48,6 +49,7 @@ trait EvalCommon {
       }
       case FunApp(funExp: Expression, exp: Expression) => funApp(funExp, exp, env, mode)
       case Fun(id, funExp) => fun(id, funExp, env, mode)
+      case Fix(fId, Fun(Identifier(id),funExp)) => fix(fId, id, funExp, env, mode)
       case _ => exp
     }
   }

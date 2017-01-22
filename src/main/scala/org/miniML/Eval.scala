@@ -35,6 +35,8 @@ object Eval extends EvalCommon {
 
   def fun(id: Identifier, funExp: Expression, env: Env, mode: Mode) = Fun(id, replace(funExp, env, Set(id)))
   
+  def fix(fid: Identifier, id: Identifier, funExp: Expression, env: Env, mode: Mode) = Fun(id,replaceAll(funExp,fid,Fix(fid,Fun(id,funExp))))
+  
   def replace(funExp1: Expression, env: Map[Identifier, Expression], tiedVars: Set[Identifier]): Expression = {
     funExp1 match {
       case Product(e1, e2) => Product(replace(e1, env, tiedVars), replace(e2, env, tiedVars))

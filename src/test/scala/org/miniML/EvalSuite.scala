@@ -83,6 +83,14 @@ class EvalSuite extends FunSuite {
     check("fun a -> a + 1 2", 3)
   }
 
+  test("variable shadowing 1") {
+    check("((fun x -> fun x -> x) 2) 3", 3)
+  }
+
+  test("variable shadowing 2") {
+    check("((fun x -> fun y -> ((fun x-> (x+y)) x )) 5) 4", 9)
+  }
+
   test("function application 2") {
     check("let coco = fun x -> 2 * x in coco 10+0",20)
   }
@@ -121,7 +129,7 @@ class EvalSuite extends FunSuite {
     assert(byName == e2)
   }
   
-  test("Y combinator") {
+  test("factorial (with Y combinator)") {
     val yCombinator = Eval("fun f -> (fun x -> f (x x)) fun x -> f (x x)")
     val e1 = Fun(Identifier("f"), FunApp(Fun(Identifier("x"), FunApp(Identifier("f"), FunApp(Identifier("x"), Identifier("x")))), Fun(Identifier("x"), FunApp(Identifier("f"), FunApp(Identifier("x"), Identifier("x"))))))
     assert(yCombinator.get == e1, s"ExpressionParser")
@@ -136,7 +144,7 @@ class EvalSuite extends FunSuite {
     check(FunApp(fact, Integer(5)), Integer(1 * 2 * 3 * 4 * 5))
   }
 
-  test("power function") {
+  test("power function (With Y combinator)") {
 //   val ep = new ExpressionParser()
 //    ep.parse(ep.expression,"fun f -> (fun x -> f (x x)) fun x -> f (x x)")
 //    ep.parse(ep.expression,"fun n-> fun f2 -> (fun p -> ifz p then 1 else n * (f2 (p-1)))")
@@ -150,5 +158,11 @@ class EvalSuite extends FunSuite {
     check(
       Let(Identifier("power"), Fun(Identifier("n"), Fun(Identifier("p"), FunApp(FunApp(yCombinator.get, FunApp(iPower.get, Identifier("n"))), Identifier("p")))),
         FunApp(FunApp(Identifier("power"), Integer(2)), Integer(3))), Integer(2 * 2 * 2))
+  }
+  
+  test("factorial (with fix function)") {
+    val fact = "(fix f fun n -> (ifz n then 1 else (n * (f (n -1)))))"
+    check(fact + " 1", Integer(1))
+    check(fact + " 5", Integer(1 * 2 * 3 * 4 * 5))
   }
 }
