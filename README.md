@@ -26,14 +26,14 @@ As miniML is not typed, the Y combinator (a function) can be used to implement r
 
 For example, the following expression evaluates to the factorial of 10:
 ```ml
-    let yComb = (fun f -> (fun x -> f (x x)) fun x -> f (x x)) in 
-    let iFact = fun f -> fun n -> ifz n then 1 else (n * (f (n-1))) in
-    (yComb iFact) 10
+let yComb = (fun f -> (fun x -> f (x x)) fun x -> f (x x)) in 
+let iFact = fun f -> fun n -> ifz n then 1 else (n * (f (n-1))) in
+(yComb iFact) 10
 ```
     
 Still for convenience a 'fix' operator is included as it allows an easier to read syntax. The factorial of 10 can be computed using the following expression:
 ```ml
-    let fact = (fix f fun n -> (ifz n then 1 else (n * (f (n -1))))) in
-    fact 10
+let fact = (fix f fun n -> (ifz n then 1 else (n * (f (n -1))))) in
+fact 10
 ```
- 
+
