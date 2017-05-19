@@ -95,6 +95,7 @@ class EvalSuite extends FunSuite {
     check("let coco = fun x -> 2 * x in coco 10+0",20)
   }
 
+  // This would not finish when evaluated by value
   test("function for call by name") {
     check("let f1 = fun a -> 1 in let f2 = fun x-> (x x) in 2 + (f1 (f2 f2))", 3, Some(Eval.ByName))
   }
