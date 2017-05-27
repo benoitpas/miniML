@@ -12,7 +12,7 @@ let v=1 in let y=5+4*v in y+1
 ```
 * Functions are defined like "fun a -> a + 1" and currying is used for multiple arguments: 
 ```ml
-fun a -> fun b -> b + a
+fun a -> fun b -> b + a"
 ```
 * The language doesn't have booleans, it uses a construct that tests if a value is 0:  the following will evaluate to 1 if a is 0 and 2 if a is not 0
 ```ml
