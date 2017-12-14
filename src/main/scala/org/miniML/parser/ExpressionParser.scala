@@ -19,9 +19,10 @@ class ExpressionParser extends RegexParsers {
   def ifz ="ifz" ~ expression ~ "then" ~ expression ~ "else" ~ expression ^^ { case _ ~ cExp ~ _ ~ zExp ~ _ ~ nZExp => Ifz(cExp, zExp, nZExp) }
   def fun = "fun" ~ identifier ~ "->" ~ expression ^^ { case _ ~ variable ~ _ ~ e => Fun(variable,e) }
   def fix = "fix" ~ identifier ~ expression ^^ { case _ ~ variable ~ e => Fix(variable,e) }
+  // add fterm for 'functional term' (does not include integer operation ?) + vterm for value terms
   def funApp = term ~ expression ^^ { case funExp ~ e => FunApp(funExp,e) }
 
-  def expression: Parser[Expression] =  funApp | fix | fun | ifz | let | sum | minus | product | term
+  def expression: Parser[Expression] =  funApp | fix | fun | ifz | let | sum | minus | product | identifier | integer | pterm
 
  
   def regex2(r: Regex): Parser[String] = new Parser[String] {
