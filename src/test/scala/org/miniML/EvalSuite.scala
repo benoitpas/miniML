@@ -146,10 +146,16 @@ class EvalSuite extends FunSuite {
   }
 
   test("power function (With Y combinator)") {
-//   val ep = new ExpressionParser()
-//    ep.parse(ep.expression,"fun f -> (fun x -> f (x x)) fun x -> f (x x)")
-//    ep.parse(ep.expression,"fun n-> fun f2 -> (fun p -> ifz p then 1 else n * (f2 (p-1)))")
-//    ep.parse(ep.expression,"fun n -> (fun f2 -> (fun p -> ifz p then 1 else n * (f2 (p-1))))")
+    //check("let yCombinator = fun f -> ((fun x -> (f (x x))) (fun x -> (f (x x)))) in "
+    //         + "let iPower = fun n -> (fun f2 -> (fun p -> ifz p then 1 else (n * (f2 (p-1))))) in "
+    //     + "let power = fun n -> fun p -> (yCombinator (iPower n) p) in "
+    //     + "((power 2 ) 3)",Integer(2*2*2))
+
+    // todo: add fExpression + iExpression to try to be able to parse the following expression
+    //    check(//"let yCombinator = fun f -> ((fun x -> (f (x x))) (fun x -> (f (x x)))) in "
+    //    "let iPower = (fun f2 -> (fun p -> (ifz p then 1 else (2 * (p-1)))) in "
+    //      + "8",Integer(2*2*2))
+
     val yCombinator = Eval("fun f -> (fun x -> f (x x)) fun x -> f (x x)")
     val iPower = Eval("fun n -> (fun f2 -> (fun p -> ifz p then 1 else n * (f2 (p-1))))")
     //val p23 = EvalByValue("let yCombinator = fun f -> ((fun x -> f (x x)) (fun x -> f (x x))) in "

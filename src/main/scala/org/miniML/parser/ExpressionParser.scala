@@ -1,14 +1,18 @@
 package org.miniML.parser
 
+import java.io.StringReader
+
 import scala.language.implicitConversions
 import scala.util.matching.Regex
-import scala.util.parsing.combinator.RegexParsers
+import scala.util.parsing.combinator.syntactical.StandardTokenParsers
 
 
-class ExpressionParser extends RegexParsers {
-  def keywords = Set("let", "in", "fun", "ifz", "then", "else","fix")
-  def identifier = regex2("""[_\p{L}][_\p{L}\p{Nd}]*""".r) ^^ { case s => Identifier(s) }
-  def integer = """(0|[1-9]\d*)""".r ^^ { case s => Integer(s.toInt) }
+class ExpressionParser extends StandardTokenParsers {
+  lexical.delimiters ++= List("(",")","=","->","+","-","*")
+  lexical.reserved ++= Set("let", "in", "fun", "ifz", "then", "else","fix")
+
+  def identifier = ident ^^ { case s => Identifier(s) }
+  def integer = numericLit ^^ { case s => Integer(s.toInt) }
   def pterm = "(" ~ expression ~ ")" ^^ { case _ ~ e ~ _ => e }
   def term: Parser[Expression] = fix | fun | ifz | let | identifier | integer | pterm
   def product = term ~ "*" ~ term ^^ { case e1 ~ o ~ e2 => Product(e1, e2) }
@@ -23,7 +27,8 @@ class ExpressionParser extends RegexParsers {
 
   def expression: Parser[Expression] =  funApp | fix | fun | ifz | let | sum | minus | product | term
 
- 
+  def parse(s:String) = expression(new lexical.Scanner(s))
+ /*
   def regex2(r: Regex): Parser[String] = new Parser[String] {
     def apply(in: Input) = {
       val source = in.source
@@ -39,7 +44,7 @@ class ExpressionParser extends RegexParsers {
           Failure("string matching regex `"+r+"' expected but "+found+" found", in.drop(start - offset))
       }
     }
-  }
+  }*/
 }
 
 abstract trait Expression {
