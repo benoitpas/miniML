@@ -25,14 +25,14 @@ class ExpressionParserSuite extends FunSuite {
     assert(r.get == e, s"ExpressionParser")
   }
   
-  test("tripple sum") {
+  test("triple sum") {
     val r = ep.parse(ep.expression, "1 + 2 + 3")
     val e = Sum(Integer(1), Integer(2)) // 3 is missing
     assert(r.get == e, s"ExpressionParser")
     
   }
 
-  test("simple  test (with parenthesis)") {
+  test("simple test (with parenthesis)") {
     val r = ep.parse(ep.expression, "5+( 4* v)")
     val e = Sum(Integer(5), Product(Integer(4), Identifier("v")))
     assert(r.get == e, s"ExpressionParser")
@@ -85,9 +85,23 @@ class ExpressionParserSuite extends FunSuite {
     val e = FunApp(Fun(Identifier("a"), Sum(Identifier("a"), Integer(1))), Integer(2))
     assert(r.get == e, s"ExpressionParser")
   }
+
   test("function application 2") {
     val r = ep.parse(ep.expression, "coco 10+o")
     val e = FunApp(Identifier("coco"), Sum(Integer(10),Identifier("o")))
+    assert(r.get == e, s"ExpressionParser")
+  }
+
+  // TODO: to fix, should be FunApp(FunApp("f","1"), "2")
+  test("function application 3") {
+    val r = ep.parse(ep.expression, "f 1 2")
+    val e = FunApp("f", FunApp(1, 2))
+    assert(r.get == e, s"ExpressionParser")
+  }
+
+  test("function application 4") {
+    val r = ep.parse(ep.expression, "(f 1) 2")
+    val e = FunApp(FunApp("f",1), 2)
     assert(r.get == e, s"ExpressionParser")
   }
 
