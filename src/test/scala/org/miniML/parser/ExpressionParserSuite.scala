@@ -105,6 +105,12 @@ class ExpressionParserSuite extends FunSuite {
     assert(r.get == e, s"ExpressionParser")
   }
 
+  test("function application associativity") {
+    val r = ep.parse(ep.expression, "let f = fun x -> x + 1 in f 1 + 2")
+    val e = Let("f",Fun("x",Sum("x",1)), FunApp("f", Sum(1, 2)))
+    assert(r.get == e, s"ExpressionParser")
+  }
+
   test("Y combinator (no lazy parsing)") {
     val r = ep.parse(ep.expression, "fun f -> (fun x -> f (x x)) fun x -> f (x x)")
     val e = Fun(Identifier("f"),FunApp(Fun(Identifier("x"),FunApp(Identifier("f"),FunApp(Identifier("x"),Identifier("x")))),Fun(Identifier("x"),FunApp(Identifier("f"),FunApp(Identifier("x"),Identifier("x"))))))
