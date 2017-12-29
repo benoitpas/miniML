@@ -16,7 +16,6 @@ class ExpressionParser extends StandardTokenParsers {
   def pterm = "(" ~ expression ~ ")" ^^ { case _ ~ e ~ _ => e }
   def iPTerm = "(" ~ iExpression ~ ")" ^^ { case _ ~ e ~ _ => e }
   def fPTerm = "(" ~ fExpression ~ ")" ^^ { case _ ~ e ~ _ => e }
-  def term: Parser[Expression] = fix | fun | ifz | let | identifier | integer | pterm
   def fTerm: Parser[Expression] = fix | fun | fIfz | fLet | identifier | fPTerm
   def iTerm: Parser[Expression] = iIfz | iLet | identifier | integer | iPTerm
   def iProduct = iTerm ~ "*" ~ iTerm ^^ { case e1 ~ o ~ e2 => Product(e1, e2) }
