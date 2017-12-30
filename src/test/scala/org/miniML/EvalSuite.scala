@@ -108,14 +108,12 @@ class EvalSuite extends FunSuite {
     check("let f = fun x -> fun y -> x + y in f 1 2", 3)
   }
 
-  //TODO: Should be 7, 3rd argument is not interpreted
   test("function application 5") {
-    check("let f = fun x -> fun y -> fun z -> x + y * z in f 1 2 3", Fun("z",Sum(1,Product(2,"z"))))
+    check("let f = fun x -> fun y -> fun z -> x + y * z in f 1 2 3", 7)
   }
 
-  //TODO: Should be 14, last 2 arguments are not interpreted
   test("function application 6") {
-    check("let f = fun w -> fun x -> fun y -> fun z -> w * x + y * z in f 1 2 3 4", Fun("y", Fun("z",Sum(Product(1,2),Product("y","z")))))
+    check("let f = fun w -> fun x -> fun y -> fun z -> w * x + y * z in f 1 2 3 4", 14)
   }
 
   // This would not finish when evaluated by value
@@ -124,11 +122,11 @@ class EvalSuite extends FunSuite {
   }
 
   test("combining simple functions 1") {
-    check("let f = fun x -> x * 2 in let g = fun x -> x + 1 in (f g 1) + (g f 1)", 4 + 3)
+    check("let f = fun x -> x * 2 in let g = fun x -> x + 1 in (f (g 1)) + (g (f 1))", 4 + 3)
   }
 
   test("combining simple functions 2") {
-    check("let f = fun x -> x * 2 in let g = fun x -> x + 1 in f g 1", 4)
+    check("let f = fun x -> x * 2 in let g = fun x -> x + 1 in f (g 1)", 4)
   }
 
   test("combine functions") {
@@ -136,13 +134,13 @@ class EvalSuite extends FunSuite {
   }
 
   test("iFactorial test") {
-    check("let id = fun x -> x in let iFact = fun f -> fun n -> ifz n then 1 else (n * (f (n-1))) in ((iFact id) 0)", 1)
+    check("let id = fun x -> x in let iFact = fun f -> fun n -> ifz n then 1 else (n * (f (n-1))) in iFact id 0", 1)
 
-    check("let id = fun x -> x in let iFact = fun f -> fun n -> ifz n then 1 else (n * (f (n-1))) in (iFact (iFact id)) 1", 1)
+    check("let id = fun x -> x in let iFact = fun f -> fun n -> ifz n then 1 else (n * (f (n-1))) in iFact (iFact id) 1", 1)
 
-    check("let id = fun x -> x in let iFact = fun f -> fun n -> ifz n then 1 else (n * (f (n-1))) in (iFact (iFact (iFact id))) 2", 2)
+    check("let id = fun x -> x in let iFact = fun f -> fun n -> ifz n then 1 else (n * (f (n-1))) in iFact (iFact (iFact id)) 2", 2)
 
-    check("let id = fun x -> x in let iFact = fun f -> fun n -> ifz n then 1 else (n * (f (n-1))) in (iFact (iFact (iFact (iFact id)))) 3", 6)
+    check("let id = fun x -> x in let iFact = fun f -> fun n -> ifz n then 1 else (n * (f (n-1))) in iFact (iFact (iFact (iFact id))) 3", 6)
 
   }
 
@@ -154,40 +152,22 @@ class EvalSuite extends FunSuite {
   }
   
   test("factorial (with Y combinator)") {
-    val yCombinator = Eval("fun f -> (fun x -> f (x x)) fun x -> f (x x)")
-    val e1 = Fun(Identifier("f"), FunApp(Fun(Identifier("x"), FunApp(Identifier("f"), FunApp(Identifier("x"), Identifier("x")))), Fun(Identifier("x"), FunApp(Identifier("f"), FunApp(Identifier("x"), Identifier("x"))))))
-    assert(yCombinator.get == e1, s"ExpressionParser")
-    val iFactorial = Eval("fun f2 -> fun n -> ifz n then 1 else (n * (f2 (n-1)))")
-    val e2 = Fun(Identifier("f2"),Fun(Identifier("n"),Ifz(Identifier("n"),Integer(1),Product(Identifier("n"),FunApp(Identifier("f2"),Minus(Identifier("n"),Integer(1)))))))
-    assert(iFactorial == Some(e2), s"ExpressionParser")
-    val fact = FunApp(yCombinator.get, iFactorial.get)
-    println
+    val fact2 =
+        "let yCombinator = fun f -> (fun x -> f (x x)) fun x -> f (x x) in " +
+        "let iFactorial = fun f2 -> fun n -> ifz n then 1 else (n * (f2 (n-1))) in " +
+        "let fact = yCombinator iFactorial in fact "
 
-    check(FunApp(fact, Integer(0)), Integer(1))
-    check(FunApp(fact, Integer(1)), Integer(1))
-    check(FunApp(fact, Integer(5)), Integer(1 * 2 * 3 * 4 * 5))
+    check(fact2 + "0",  1)
+    check(fact2 + "1",  1)
+    check(fact2 + "5",  1*2*3*4*5)
   }
 
   test("power function (With Y combinator)") {
-    //check("let yCombinator = fun f -> ((fun x -> (f (x x))) (fun x -> (f (x x)))) in "
-    //         + "let iPower = fun n -> (fun f2 -> (fun p -> ifz p then 1 else (n * (f2 (p-1))))) in "
-    //     + "let power = fun n -> fun p -> (yCombinator (iPower n) p) in "
-    //     + "((power 2 ) 3)",Integer(2*2*2))
+    check("let yCombinator = fun f -> (fun x -> f (x x)) fun x -> f (x x) in "
+        + "let iPower = fun n -> fun f2 -> fun p -> ifz p then 1 else n * (f2 p - 1) in "
+        + "let power = fun n -> fun p -> (yCombinator (iPower n) p) in "
+        + "power 2 3", Integer(2*2*2))
 
-    // todo: add fExpression + iExpression to try to be able to parse the following expression
-    //    check(//"let yCombinator = fun f -> ((fun x -> (f (x x))) (fun x -> (f (x x)))) in "
-    //    "let iPower = (fun f2 -> (fun p -> (ifz p then 1 else (2 * (p-1)))) in "
-    //      + "8",Integer(2*2*2))
-
-    val yCombinator = Eval("fun f -> (fun x -> f (x x)) fun x -> f (x x)")
-    val iPower = Eval("fun n -> (fun f2 -> (fun p -> ifz p then 1 else n * (f2 (p-1))))")
-    //val p23 = EvalByValue("let yCombinator = fun f -> ((fun x -> f (x x)) (fun x -> f (x x))) in "
-    //     + "let iPower = fun n -> (fun f2 -> (fun p -> ifz p then 1 else (n * (f2 (p-1))))) in "
-    //     + "let power = fun n -> fun p -> (yCombinator (iPower n) p) in "
-    //     + "((power 2 ) 3)").get
-    check(
-      Let(Identifier("power"), Fun(Identifier("n"), Fun(Identifier("p"), FunApp(FunApp(yCombinator.get, FunApp(iPower.get, Identifier("n"))), Identifier("p")))),
-        FunApp(FunApp(Identifier("power"), Integer(2)), Integer(3))), Integer(2 * 2 * 2))
   }
   
   test("factorial (with fix function)") {

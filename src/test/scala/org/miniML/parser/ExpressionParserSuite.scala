@@ -105,10 +105,9 @@ class ExpressionParserSuite extends FunSuite {
     assert(r.get == e, s"ExpressionParser")
   }
 
-  // TODO: to fix, should be FunApp(FunApp("f","1"), "2")
   test("function application 3") {
     val r = ep.parse("f 1 2")
-    val e = FunApp("f", 1)
+    val e = FunApp(FunApp("f", 1),2)
     assert(r.get == e, s"ExpressionParser")
   }
 
@@ -118,10 +117,9 @@ class ExpressionParserSuite extends FunSuite {
     assert(r.get == e, s"ExpressionParser")
   }
 
-  // TODO: should be left associative
   test("function application 5") {
     val r = ep.parse("let f = fun w -> fun x -> fun y -> fun z -> w + x + y + z in f a b c d")
-    val e = Let("f", Fun("w",Fun("x",Fun("y",Fun("z", Sum(Sum(Sum("w","x"),"y"),"z"))))),FunApp("f",FunApp("a",FunApp("b",FunApp("c","d")))))
+    val e = Let("f", Fun("w",Fun("x",Fun("y",Fun("z", Sum(Sum(Sum("w","x"),"y"),"z"))))),FunApp(FunApp(FunApp(FunApp("f","a"),"b"),"c"),"d"))
 
     assert(r.get == e, s"ExpressionParser")
   }

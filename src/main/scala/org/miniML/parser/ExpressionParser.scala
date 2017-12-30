@@ -30,7 +30,7 @@ class ExpressionParser extends StandardTokenParsers {
   def ifz ="ifz" ~ expression ~ "then" ~ expression ~ "else" ~ expression ^^ { case _ ~ cExp ~ _ ~ zExp ~ _ ~ nZExp => Ifz(cExp, zExp, nZExp) }
   def fun = "fun" ~ identifier ~ "->" ~ expression ^^ { case _ ~ variable ~ _ ~ e => Fun(variable,e) }
   def fix = "fix" ~ identifier ~ expression ^^ { case _ ~ variable ~ e => Fix(variable,e) }
-  def funApp = fTerm ~ expression ^^ { case funExp ~ e => FunApp(funExp,e) }
+  def funApp = fTerm ~ rep1(lExpression) ^^ { case funExp ~ e => e.foldLeft(funExp)(FunApp(_,_)) }
 
   // Only for integer
   def iExpression: Parser[Expression] =  funApp | iIfz | iLet | iSum | iMinus | iProduct | identifier | integer | iPTerm
