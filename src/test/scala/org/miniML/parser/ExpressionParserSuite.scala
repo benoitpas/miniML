@@ -27,10 +27,17 @@ class ExpressionParserSuite extends FunSuite {
   
   test("tripple sum") {
     val r = ep.parse("1 + 2 + 3")
-    val e = Sum(Integer(1), Integer(2)) // 3 is missing
+    val e = Sum(Sum(1, 2), 3)
     assert(r.get == e, s"ExpressionParser")
-    
   }
+
+  test("tripple product") {
+    val r = ep.parse("1*2*3")
+    val e = Product(Product(1, 2), 3)
+    assert(r.get == e, s"ExpressionParser")
+
+  }
+
 
   test("simple  test (with parenthesis)") {
     val r = ep.parse("5+( 4* v)")
@@ -113,8 +120,9 @@ class ExpressionParserSuite extends FunSuite {
 
   // TODO: should be left associative
   test("function application 5") {
-    val r = ep.parse("f a b c d")
-    val e = FunApp("f",FunApp("a",FunApp("b",FunApp("c","d"))))
+    val r = ep.parse("let f = fun w -> fun x -> fun y -> fun z -> w + x + y + z in f a b c d")
+    val e = Let("f", Fun("w",Fun("x",Fun("y",Fun("z", Sum(Sum(Sum("w","x"),"y"),"z"))))),FunApp("f",FunApp("a",FunApp("b",FunApp("c","d")))))
+
     assert(r.get == e, s"ExpressionParser")
   }
 

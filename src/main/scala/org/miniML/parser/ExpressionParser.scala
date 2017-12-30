@@ -13,15 +13,15 @@ class ExpressionParser extends StandardTokenParsers {
 
   def identifier = ident ^^ { case s => Identifier(s) }
   def integer = numericLit ^^ { case s => Integer(s.toInt) }
-  def pterm = "(" ~ expression ~ ")" ^^ { case _ ~ e ~ _ => e }
-  def iPTerm = "(" ~ iExpression ~ ")" ^^ { case _ ~ e ~ _ => e }
-  def fPTerm = "(" ~ fExpression ~ ")" ^^ { case _ ~ e ~ _ => e }
+  def pterm = "(" ~> expression <~ ")" ^^ { case e => e }
+  def iPTerm = "(" ~> iExpression <~ ")" ^^ { case e => e }
+  def fPTerm = "(" ~> fExpression <~ ")" ^^ { case e => e }
   def fTerm: Parser[Expression] = fix | fun | fIfz | fLet | identifier | fPTerm
   def iTerm: Parser[Expression] = iIfz | iLet | identifier | integer | iPTerm
-  def iProduct = iTerm ~ "*" ~ iTerm ^^ { case e1 ~ o ~ e2 => Product(e1, e2) }
+  def iProduct = iTerm ~ rep1("*" ~> iTerm) ^^ { case e1 ~ e2 => e2.foldLeft(e1)(Product(_,_)) }
   def iFactor = iProduct | iTerm
-  def iSum = iFactor ~ "+" ~ iFactor ^^ { case e1 ~ o ~ e2 => Sum(e1, e2) }
-  def iMinus = iFactor ~ "-" ~ iFactor ^^ { case e1 ~ o ~ e2 => Minus(e1, e2) }
+  def iSum = iFactor ~ rep1("+" ~> iFactor) ^^ { case e1 ~ e2 => e2.foldLeft(e1)(Sum(_, _)) }
+  def iMinus = iFactor ~ rep1("-" ~> iFactor) ^^ { case e1 ~ e2 => e2.foldLeft(e1)(Minus(_, _)) }
   def iLet = "let" ~ identifier ~ "=" ~ expression ~ "in" ~ iExpression ^^ { case _ ~ id ~ _ ~ e1 ~ _ ~ e2 => Let(id, e1, e2) }
   def fLet = "let" ~ identifier ~ "=" ~ expression ~ "in" ~ fExpression ^^ { case _ ~ id ~ _ ~ e1 ~ _ ~ e2 => Let(id, e1, e2) }
   def let = "let" ~ identifier ~ "=" ~ expression ~ "in" ~ expression ^^ { case _ ~ id ~ _ ~ e1 ~ _ ~ e2 => Let(id, e1, e2) }
@@ -32,9 +32,13 @@ class ExpressionParser extends StandardTokenParsers {
   def fix = "fix" ~ identifier ~ expression ^^ { case _ ~ variable ~ e => Fix(variable,e) }
   def funApp = fTerm ~ expression ^^ { case funExp ~ e => FunApp(funExp,e) }
 
+  // Only for integer
   def iExpression: Parser[Expression] =  funApp | iIfz | iLet | iSum | iMinus | iProduct | identifier | integer | iPTerm
+  // Only for functions
   def fExpression: Parser[Expression] =  funApp | fix | fun | fIfz | fLet | identifier | fPTerm
-  def expression: Parser[Expression] =  funApp | fix | fun | ifz | let | iSum | iMinus | iProduct | identifier | integer | pterm
+  // limited expressions (not function applications)
+  def lExpression: Parser[Expression] =  fix | fun | ifz | let | iSum | iMinus | iProduct | identifier | integer | pterm
+  def expression: Parser[Expression] =  funApp | lExpression
 
   def parse(s:String) = expression(new lexical.Scanner(s))
 }

@@ -44,7 +44,7 @@ class EvalSuite extends FunSuite {
   }
 
   test("substraction and addition") {
-    check("2-1+1", 1)
+    check("2-1+1", 1) // TODO: should be 2 (need to handle
     check("2-(1+1)", 0)
   }
 
