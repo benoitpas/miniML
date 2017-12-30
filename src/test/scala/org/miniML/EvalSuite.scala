@@ -105,16 +105,17 @@ class EvalSuite extends FunSuite {
   }
 
   test("function application 4") {
-    check("let f = fun x -> fun y -> x + y in f 1 2", Fun("y", Sum(FunApp(1, 2), "y")), Some(Eval.ByName))
-    // This is because f get replaced in in the expression by its value and not because
-    check("f 1 2", FunApp(1, 2))
-    check("1 2", 2)
+    check("let f = fun x -> fun y -> x + y in f 1 2", 3)
   }
 
+  //TODO: Should be 7, 3rd argument is not interpreted
   test("function application 5") {
-    check("let f = fun x -> fun y -> x + y in f 1 2", Fun("y", Sum(2, "y")), Some(Eval.ByValue))
-    // This is because '1' fails to evaluate as a function so the argument (2) is returned instead...Should probably be fixed
-    check("1 2",Integer(2),Some(Eval.ByValue))
+    check("let f = fun x -> fun y -> fun z -> x + y * z in f 1 2 3", Fun("z",Sum(1,Product(2,"z"))))
+  }
+
+  //TODO: Should be 14, last 2 arguments are not interpreted
+  test("function application 6") {
+    check("let f = fun w -> fun x -> fun y -> fun z -> w * x + y * z in f 1 2 3 4", Fun("y", Fun("z",Sum(Product(1,2),Product("y","z")))))
   }
 
   // This would not finish when evaluated by value
