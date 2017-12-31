@@ -43,6 +43,11 @@ class EvalSuite extends FunSuite {
     check("5*4+2", 22)
   }
 
+  test("substraction and addition") {
+    check("2-1+1", 1)
+    check("2-(1+1)", 0)
+  }
+
   test("simple let test") {
     check("let y=5+(4*0) in y+1", 6)
   }
@@ -95,6 +100,23 @@ class EvalSuite extends FunSuite {
     check("let coco = fun x -> 2 * x in coco 10+0",20)
   }
 
+  test("function application 3") {
+    check("let f = fun x -> fun y -> x - y in (f 1) 2", -1)
+  }
+
+  test("function application 4") {
+    check("let f = fun x -> fun y -> x + y in f 1 2", Fun("y", Sum(FunApp(1, 2), "y")), Some(Eval.ByName))
+    // This is because f get replaced in in the expression by its value and not because
+    check("f 1 2", FunApp(1, 2))
+    check("1 2", 2)
+  }
+
+  test("function application 5") {
+    check("let f = fun x -> fun y -> x + y in f 1 2", Fun("y", Sum(2, "y")), Some(Eval.ByValue))
+    // This is because '1' fails to evaluate as a function so the argument (2) is returned instead...Should probably be fixed
+    check("1 2",Integer(2),Some(Eval.ByValue))
+  }
+
   // This would not finish when evaluated by value
   test("function for call by name") {
     check("let f1 = fun a -> 1 in let f2 = fun x-> (x x) in 2 + (f1 (f2 f2))", 3, Some(Eval.ByName))
@@ -123,7 +145,7 @@ class EvalSuite extends FunSuite {
 
   }
 
-  def check(e1: Expression, e2: Expression) = {
+  def check(e1: Expression, e2: Expression) : Unit = {
     val byValue = Eval.eval(e1, Map(), Eval.ByValue)
     val byName = Eval.eval(e1, Map(), Eval.ByValue)
     assert(byValue == e2)
