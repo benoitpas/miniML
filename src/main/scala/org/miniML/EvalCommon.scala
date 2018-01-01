@@ -32,6 +32,10 @@ trait EvalCommon {
         case (Integer(i1), Integer(i2)) => Integer(i1 * i2)
         case (e1, e2)                   => Product(e1, e2)
       }
+      case Division(e1: Expression, e2: Expression) => (eval(e1, env, mode), eval(e2, env, mode)) match {
+        case (Integer(i1), Integer(i2)) => Integer(i1 / i2)
+        case (e1, e2)                   => Product(e1, e2)
+      }
       case Sum(e1: Expression, e2: Expression) => (eval(e1, env, mode), eval(e2, env, mode)) match {
         case (Integer(i1), Integer(i2)) => Integer(i1 + i2)
         case (e1, e2)                   => Sum(e1, e2)

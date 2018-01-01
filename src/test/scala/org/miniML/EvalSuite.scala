@@ -48,6 +48,10 @@ class EvalSuite extends FunSuite {
     check("2-(1+1)", 0)
   }
 
+  test("division") {
+    check("13/3", 4)
+  }
+
   test("simple let test") {
     check("let y=5+(4*0) in y+1", 6)
   }

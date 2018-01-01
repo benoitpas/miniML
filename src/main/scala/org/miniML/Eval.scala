@@ -40,6 +40,7 @@ object Eval extends EvalCommon {
   def replace(funExp1: Expression, env: Map[Identifier, Expression], tiedVars: Set[Identifier]): Expression = {
     funExp1 match {
       case Product(e1, e2) => Product(replace(e1, env, tiedVars), replace(e2, env, tiedVars))
+      case Division(e1, e2) => Division(replace(e1, env, tiedVars), replace(e2, env, tiedVars))
       case Sum(e1, e2) => Sum(replace(e1, env, tiedVars), replace(e2, env, tiedVars))
       case Minus(e1, e2) => Minus(replace(e1, env, tiedVars), replace(e2, env, tiedVars))
       case Identifier(id2) if (!tiedVars.contains(Identifier(id2)) && env.contains(Identifier(id2))) => env(Identifier(id2))
@@ -54,6 +55,7 @@ object Eval extends EvalCommon {
   def replace(funExp1: Expression, id1: Identifier, exp2: Expression): Expression = {
     funExp1 match {
       case Product(e1, e2)                           => Product(replace(e1, id1, exp2), replace(e2, id1, exp2))
+      case Division(e1, e2)                           => Division(replace(e1, id1, exp2), replace(e2, id1, exp2))
       case Sum(e1, e2)                               => Sum(replace(e1, id1, exp2), replace(e2, id1, exp2))
       case Minus(e1, e2)                             => Minus(replace(e1, id1, exp2), replace(e2, id1, exp2))
       case Identifier(id) if (Identifier(id) == id1) => exp2

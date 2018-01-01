@@ -11,9 +11,9 @@ import org.miniML.parser.Identifier._
 @RunWith(classOf[JUnitRunner])
 class ExpressionParserSuite extends FunSuite {
 
-    val ep = new ExpressionParser()
+  val ep = new ExpressionParser()
 
-    test("simple  test  1") {
+  test("simple  test  1") {
     val r = ep.parse("5+4 *v")
     val e = Sum(Integer(5),Product(Integer(4),Identifier("v")))
     assert(r.get==e, s"ExpressionParser")
@@ -37,7 +37,6 @@ class ExpressionParserSuite extends FunSuite {
     assert(r.get == e, s"ExpressionParser")
 
   }
-
 
   test("simple  test (with parenthesis)") {
     val r = ep.parse("5+( 4* v)")

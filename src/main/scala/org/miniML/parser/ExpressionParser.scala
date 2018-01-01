@@ -5,7 +5,7 @@ import scala.util.parsing.combinator.syntactical.StandardTokenParsers
 
 
 class ExpressionParser extends StandardTokenParsers {
-  lexical.delimiters ++= List("(",")","=","->","+","-","*")
+  lexical.delimiters ++= List("(",")","=","->","+","-","*","/")
   lexical.reserved ++= Set("let", "in", "fun", "ifz", "then", "else","fix")
 
   def identifier = ident ^^ { case s => Identifier(s) }
@@ -15,7 +15,7 @@ class ExpressionParser extends StandardTokenParsers {
   def fPTerm = "(" ~> fExpression <~ ")" ^^ { case e => e }
   def fTerm: Parser[Expression] = fix | fun | fIfz | fLet | identifier | fPTerm
   def iTerm: Parser[Expression] = iIfz | iLet | identifier | integer | iPTerm
-  def iProduct = iTerm ~ rep1("*" ~> iTerm) ^^ { case e1 ~ e2 => e2.foldLeft(e1)(Product(_,_)) }
+  def iProduct = iTerm ~ rep1(("*"|"/") ~ iTerm) ^^ { case e1 ~ e2 => e2.foldLeft(e1)((a,b)=> if (b._1 == "*") Product(a,b._2) else Division(a,b._2)) }
   def iFactor = iProduct | iTerm
   def iSum = iFactor ~ rep1("+" ~> iFactor) ^^ { case e1 ~ e2 => e2.foldLeft(e1)(Sum(_, _)) }
   def iMinus = iFactor ~ rep1("-" ~> iFactor) ^^ { case e1 ~ e2 => e2.foldLeft(e1)(Minus(_, _)) }
@@ -46,6 +46,11 @@ abstract trait Expression {
 case class Product(e1: Expression, e2: Expression) extends Expression {
   override def toString() = e1 + " * " + e2
 }
+
+case class Division(e1: Expression, e2: Expression) extends Expression {
+  override def toString() = e1 + " / " + e2
+}
+
 case class Sum(e1: Expression, e2: Expression) extends Expression {
   override def toString() = e1 + " + " + e2  
 }
