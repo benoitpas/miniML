@@ -20,7 +20,7 @@ class ExpressionParser extends RegexParsers {
   def fun = "fun" ~ identifier ~ "->" ~ expression ^^ { case _ ~ variable ~ _ ~ e => Fun(variable,e) }
   def fix = "fix" ~ identifier ~ expression ^^ { case _ ~ variable ~ e => Fix(variable,e) }
   // add fterm for 'functional term' (does not include integer operation ?) + vterm for value terms
-  def funApp = term ~ expression ^^ { case funExp ~ e => FunApp(funExp,e) }
+  def funApp = term ~ rep1(expression) ^^ { case funExp ~ e => e.foldLeft(funExp)(FunApp(_,_)) }
 
   def expression: Parser[Expression] =  funApp | fix | fun | ifz | let | sum | minus | product | identifier | integer | pterm
 
