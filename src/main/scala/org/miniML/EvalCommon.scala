@@ -13,7 +13,7 @@ trait EvalCommon {
   def newEnv(): Env
 
   def apply(s: String, mode: Mode = ByValue) = {
-    val r = parser.parse(parser.expression, s)
+    val r = parser.parse(s)
     if (r.successful) Some(eval(r.get, newEnv(), mode)) else {
       println(r.toString())
       None

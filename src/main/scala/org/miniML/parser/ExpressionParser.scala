@@ -1,46 +1,43 @@
 package org.miniML.parser
 
 import scala.language.implicitConversions
-import scala.util.matching.Regex
-import scala.util.parsing.combinator.RegexParsers
+import scala.util.parsing.combinator.syntactical.StandardTokenParsers
 
 
-class ExpressionParser extends RegexParsers {
-  def keywords = Set("let", "in", "fun", "ifz", "then", "else","fix")
-  def identifier = regex2("""[_\p{L}][_\p{L}\p{Nd}]*""".r) ^^ { case s => Identifier(s) }
-  def integer = """(0|[1-9]\d*)""".r ^^ { case s => Integer(s.toInt) }
-  def pterm = "(" ~ expression ~ ")" ^^ { case _ ~ e ~ _ => e }
-  def term: Parser[Expression] = fix | fun | ifz | let | identifier | integer | pterm
-  def product = term ~ "*" ~ term ^^ { case e1 ~ o ~ e2 => Product(e1, e2) }
-  def factor = product | term
-  def sum = factor ~ "+" ~ factor ^^ { case e1 ~ o ~ e2 => Sum(e1, e2) }
-  def minus = factor ~ "-" ~ factor ^^ { case e1 ~ o ~ e2 => Minus(e1, e2) }
+class ExpressionParser extends StandardTokenParsers {
+  lexical.delimiters ++= List("(",")","=","->","+","-","*")
+  lexical.reserved ++= Set("let", "in", "fun", "ifz", "then", "else","fix")
+
+  def identifier = ident ^^ { case s => Identifier(s) }
+  def integer = numericLit ^^ { case s => Integer(s.toInt) }
+  def pterm = "(" ~> expression <~ ")" ^^ { case e => e }
+  def iPTerm = "(" ~> iExpression <~ ")" ^^ { case e => e }
+  def fPTerm = "(" ~> fExpression <~ ")" ^^ { case e => e }
+  def fTerm: Parser[Expression] = fix | fun | fIfz | fLet | identifier | fPTerm
+  def iTerm: Parser[Expression] = iIfz | iLet | identifier | integer | iPTerm
+  def iProduct = iTerm ~ rep1("*" ~> iTerm) ^^ { case e1 ~ e2 => e2.foldLeft(e1)(Product(_,_)) }
+  def iFactor = iProduct | iTerm
+  def iSum = iFactor ~ rep1("+" ~> iFactor) ^^ { case e1 ~ e2 => e2.foldLeft(e1)(Sum(_, _)) }
+  def iMinus = iFactor ~ rep1("-" ~> iFactor) ^^ { case e1 ~ e2 => e2.foldLeft(e1)(Minus(_, _)) }
+  def iLet = "let" ~ identifier ~ "=" ~ expression ~ "in" ~ iExpression ^^ { case _ ~ id ~ _ ~ e1 ~ _ ~ e2 => Let(id, e1, e2) }
+  def fLet = "let" ~ identifier ~ "=" ~ expression ~ "in" ~ fExpression ^^ { case _ ~ id ~ _ ~ e1 ~ _ ~ e2 => Let(id, e1, e2) }
   def let = "let" ~ identifier ~ "=" ~ expression ~ "in" ~ expression ^^ { case _ ~ id ~ _ ~ e1 ~ _ ~ e2 => Let(id, e1, e2) }
+  def iIfz ="ifz" ~ iExpression ~ "then" ~ iExpression ~ "else" ~ iExpression ^^ { case _ ~ cExp ~ _ ~ zExp ~ _ ~ nZExp => Ifz(cExp, zExp, nZExp) }
+  def fIfz ="ifz" ~ expression ~ "then" ~ expression ~ "else" ~ fExpression ^^ { case _ ~ cExp ~ _ ~ zExp ~ _ ~ nZExp => Ifz(cExp, zExp, nZExp) }
   def ifz ="ifz" ~ expression ~ "then" ~ expression ~ "else" ~ expression ^^ { case _ ~ cExp ~ _ ~ zExp ~ _ ~ nZExp => Ifz(cExp, zExp, nZExp) }
   def fun = "fun" ~ identifier ~ "->" ~ expression ^^ { case _ ~ variable ~ _ ~ e => Fun(variable,e) }
   def fix = "fix" ~ identifier ~ expression ^^ { case _ ~ variable ~ e => Fix(variable,e) }
-  // add fterm for 'functional term' (does not include integer operation ?) + vterm for value terms
-  def funApp = term ~ rep1(expression) ^^ { case funExp ~ e => e.foldLeft(funExp)(FunApp(_,_)) }
+  def funApp = fTerm ~ rep1(lExpression) ^^ { case funExp ~ e => e.foldLeft(funExp)(FunApp(_,_)) }
 
-  def expression: Parser[Expression] =  funApp | fix | fun | ifz | let | sum | minus | product | identifier | integer | pterm
+  // Only for integer
+  def iExpression: Parser[Expression] =  funApp | iIfz | iLet | iSum | iMinus | iProduct | identifier | integer | iPTerm
+  // Only for functions
+  def fExpression: Parser[Expression] =  funApp | fix | fun | fIfz | fLet | identifier | fPTerm
+  // limited expressions (not function applications)
+  def lExpression: Parser[Expression] =  fix | fun | ifz | let | iSum | iMinus | iProduct | identifier | integer | pterm
+  def expression: Parser[Expression] =  funApp | lExpression
 
- 
-  def regex2(r: Regex): Parser[String] = new Parser[String] {
-    def apply(in: Input) = {
-      val source = in.source
-      val offset = in.offset
-      val start = handleWhiteSpace(source, offset)
-      (r findPrefixMatchOf (source.subSequence(start,source.length()))) match {
-        case Some(matched) => {
-          val s = source.subSequence(start, start + matched.end).toString
-          if (keywords(s)) Failure("string matching keyword "+s,in.drop(start - offset))
-          else Success(s,in.drop(start + matched.end - offset)) }
-        case None =>
-          val found = if (start == source.length()) "end of source" else "`"+source.charAt(start)+"'"
-          Failure("string matching regex `"+r+"' expected but "+found+" found", in.drop(start - offset))
-      }
-    }
-  }
+  def parse(s:String) = expression(new lexical.Scanner(s))
 }
 
 abstract trait Expression {
