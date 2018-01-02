@@ -179,4 +179,15 @@ class EvalSuite extends FunSuite {
     check(fact + " 1", Integer(1))
     check(fact + " 5", Integer(1 * 2 * 3 * 4 * 5))
   }
+
+  test("check if a number is prime") {
+    val isPrime = "let isPrime = (fun n -> (fix f (fun i -> ifz n-i then 1 else ifz (n-n/i*i) then 0 else f (i + 1))) 2) in isPrime "
+    check(isPrime + "2", 1)
+    check(isPrime + "3", 1)
+    check(isPrime + "4", 0)
+    check(isPrime + "5", 1)
+    check(isPrime + "9", 0)
+    check(isPrime + "13", 1)
+    check(isPrime + "34", 0)
+  }
 }
