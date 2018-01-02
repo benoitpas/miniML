@@ -35,7 +35,6 @@ class ExpressionParserSuite extends FunSuite {
     val r = ep.parse("1*2*3")
     val e = Product(Product(1, 2), 3)
     assert(r.get == e, s"ExpressionParser")
-
   }
 
   test("simple  test (with parenthesis)") {
