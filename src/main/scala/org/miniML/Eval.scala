@@ -63,6 +63,7 @@ object Eval extends EvalCommon {
       case Ifz(cExp, zExp, nzExp)                    => Ifz(replace(cExp, id1, exp2), replace(zExp, id1, exp2), replace(nzExp, id1, exp2))
       case FunApp(e1, e2)                            => FunApp(replace(e1, id1, exp2), replace(e2, id1, exp2))
       case Fun(id, funExp) if (id != id1)            => Fun(id, replace(funExp, id1, exp2))
+      case Fix(id, fixExp) if (id != id1)            => Fix(id, replace(fixExp, id1, exp2))
       case _                                         => funExp1
     }
   }
