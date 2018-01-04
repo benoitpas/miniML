@@ -5,7 +5,6 @@ package org.miniML
 import org.junit.runner.RunWith
 import org.scalatest.FunSuite
 import org.scalatest.junit.JUnitRunner
-import org.scalatest.Finders
 
 import org.miniML.parser._
 import org.miniML.parser.Integer._
@@ -26,7 +25,7 @@ class EvalSuite extends FunSuite {
   }
 
   def check(e: String, i: Int): Unit = check(e, i, None)
-  
+
   test("addition") {
     check("5+4", 9)
   }
@@ -229,12 +228,16 @@ class EvalSuite extends FunSuite {
     check(nextAcc + "3", 0)
 
     // Evaluate polynom coded as 282
-    //val evalPolygon = "let findu=" + findu +" in let Ki1=" + Ki1 + " in let Ki2=" + Ki2
-    //+ "in (fun pValue -> fun x -> (fix f fun )"
-    //Need to use 'fix' with function of 2 variables
-    val twoVars = "(fix f (fun i -> fun j -> ifz i then j else f (i-1) (j+1)) 10 2"
-    check(twoVars,12)
-
-
+    //val evalPolygon = "(let findu=" + findu +" in let Ki1=" + Ki1 + " in let Ki2=" + Ki2 + "in " +
+    //  "(fun pValue -> fun x -> (fix f fun pValue -> ifz pValue then 0 else " +
+    //  "let pValueDec = pValue-1 in let u = findu pValueDec in f (Ki2 pValueDec)))) "
+    //check(evalPolygon+" 282 0", 5)
   }
+
+  test("Sum of squares") {
+    val sumSquares = "(fun n -> (fix f fun i -> fun j -> ifz i then j else f (i-1) j+i*i) n 0) "
+    check(sumSquares + "2", 1 + 2 * 2)
+    check(sumSquares + "3", 1 + 2 * 2 + 3 * 3)
+  }
+
 }
