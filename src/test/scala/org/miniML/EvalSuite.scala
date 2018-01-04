@@ -227,11 +227,12 @@ class EvalSuite extends FunSuite {
     check(nextCoef + "3", 1)
     check(nextAcc + "3", 0)
 
-    // Evaluate polynom coded as 282
-    //val evalPolygon = "(let findu=" + findu +" in let Ki1=" + Ki1 + " in let Ki2=" + Ki2 + "in " +
-    //  "(fun pValue -> fun x -> (fix f fun pValue -> ifz pValue then 0 else " +
-    //  "let pValueDec = pValue-1 in let u = findu pValueDec in f (Ki2 pValueDec)))) "
-    //check(evalPolygon+" 282 0", 5)
+    // Evaluate polynom coded as 282 with x=13
+    val evalPolygon = "(let findu=" + findu +" in let Ki1=" + Ki1 + " in let Ki2=" + Ki2 + "in " +
+        "(fun pValue -> fun x -> (fix f fun pValue -> fun xn -> fun ret -> ifz pValue then ret else " +
+        "let pValueDec = pValue-1 in let u = findu pValueDec in f (Ki2 pValueDec u) xn*x xn*(Ki1 pValueDec u)+ret) pValue 1 0)) "
+    check(evalPolygon+" 282 13", 13*13+2*13+5, Some(Eval.ByName)) // TODO: Check why Eval.ByValue fails
+
   }
 
   test("Sum of squares") {

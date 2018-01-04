@@ -27,7 +27,7 @@ object Eval extends EvalCommon {
   else
     (eval(funExp, env, mode), exp) match {
         case (Fun(id1, funExp1), exp2) => {
-          val r = replaceAll(funExp1, id1, exp2); println("r=" + r.toString());
+          val r = replaceAll(funExp1, id1, exp2); // println("r=" + r.toString());
           eval(r, env, mode)
         }
         //case x => { println("x=" + x.toString()); exp }
