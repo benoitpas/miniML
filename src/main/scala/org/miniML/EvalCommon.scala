@@ -12,12 +12,12 @@ trait EvalCommon {
 
   def newEnv(): Env
 
-  def apply(s: String, mode: Mode = ByValue) = {
-    val r = parser.parse(s)
-    if (r.successful) Some(eval(r.get, newEnv(), mode)) else {
-      println(r.toString())
-      None
-    }
+    def apply(s: String, mode: Mode = ByValue): Option[Expression] = {
+        val r = parser.parse(s)
+        if (r.successful) Some(eval(r.get, newEnv(), mode)) else {
+            println(r.toString)
+            None
+        }
   }
 
   def identifier(s: String, env: Env, mode: Mode): Expression
@@ -28,19 +28,19 @@ trait EvalCommon {
 
   def eval(exp: Expression, env: Env, mode: Mode): Expression = {
     exp match {
-      case Product(e1: Expression, e2: Expression) => (eval(e1, env, mode), eval(e2, env, mode)) match {
+      case Product(exp1: Expression, exp2: Expression) => (eval(exp1, env, mode), eval(exp2, env, mode)) match {
         case (Integer(i1), Integer(i2)) => Integer(i1 * i2)
         case (e1, e2)                   => Product(e1, e2)
       }
-      case Division(e1: Expression, e2: Expression) => (eval(e1, env, mode), eval(e2, env, mode)) match {
+      case Division(exp1: Expression, exp2: Expression) => (eval(exp1, env, mode), eval(exp2, env, mode)) match {
         case (Integer(i1), Integer(i2)) => Integer(i1 / i2)
         case (e1, e2)                   => Product(e1, e2)
       }
-      case Sum(e1: Expression, e2: Expression) => (eval(e1, env, mode), eval(e2, env, mode)) match {
+      case Sum(exp1: Expression, exp2: Expression) => (eval(exp1, env, mode), eval(exp2, env, mode)) match {
         case (Integer(i1), Integer(i2)) => Integer(i1 + i2)
         case (e1, e2)                   => Sum(e1, e2)
       }
-      case Minus(e1: Expression, e2: Expression) => (eval(e1, env, mode), eval(e2, env, mode)) match {
+      case Minus(exp1: Expression, exp2: Expression) => (eval(exp1, env, mode), eval(exp2, env, mode)) match {
         case (Integer(i1), Integer(i2)) => Integer(i1 - i2)
         case (e1, e2)                   => Minus(e1, e2)
       }

@@ -13,14 +13,14 @@ import org.miniML.parser.Identifier._
 @RunWith(classOf[JUnitRunner])
 class EvalSuite extends FunSuite {
 
-  def check(e: String, exp: Expression, mode:Option[Eval.Mode] = None) = {
-    if (mode == None || mode == Some(Eval.ByName)) {
+  def check(e: String, exp: Expression, mode:Option[Eval.Mode] = None) {
+    if (mode.isEmpty || mode.contains(Eval.ByName)) {
       val r1 = Eval(e, Eval.ByName)
-      assert(r1 == Some(exp))
+      assert(r1.contains(exp))
     }
-    if (mode == None || mode == Some(Eval.ByValue)) {
+    if (mode.isEmpty || mode.contains(Eval.ByValue)) {
       val r2 = Eval(e, Eval.ByValue)
-      assert(r2 == Some(exp))
+      assert(r2.contains(exp))
     }
   }
 
