@@ -18,7 +18,7 @@ object Eval extends EvalCommon {
   def funApp(funExp: Expression, exp: Expression, env: Env, mode: Mode) = if (mode == Eval.ByValue )
     (eval(funExp, env, mode), eval(exp, env, mode)) match {
         case (Fun(id1, funExp1), Fun(id2, funExp2)) => {
-          val r = replaceAll(funExp1, id1, Fun(id2, funExp2)); println("r=" + r.toString());
+          val r = replaceAll(funExp1, id1, Fun(id2, funExp2));// println("r=" + r.toString());
           r
         }
         case (Fun(id, funExp), v) => eval(funExp, env + (id -> v), mode)
@@ -30,7 +30,7 @@ object Eval extends EvalCommon {
           val r = replaceAll(funExp1, id1, exp2); println("r=" + r.toString());
           eval(r, env, mode)
         }
-        case x => { println("x=" + x.toString()); exp }
+        //case x => { println("x=" + x.toString()); exp }
       }
 
   def fun(id: Identifier, funExp: Expression, env: Env, mode: Mode) = Fun(id, replace(funExp, env, Set(id)))

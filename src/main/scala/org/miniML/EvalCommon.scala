@@ -47,9 +47,8 @@ trait EvalCommon {
       case Identifier(s: String)                               => identifier(s, env, mode)
       case Let(id: Identifier, e1: Expression, e2: Expression) => let(id, e1, e2, env, mode)
       case Ifz(cExp: Expression, zExp: Expression, nzExp: Expression) => eval(cExp, env, mode) match {
-        case Integer(0) => eval(zExp, env, mode)
-        case Integer(_) => eval(nzExp, env, mode)
-        case _          => exp
+        case Integer(v) if v > 0 => eval(nzExp, env, mode)
+        case _ => eval(zExp, env, mode)
       }
       case FunApp(funExp: Expression, exp: Expression) => funApp(funExp, exp, env, mode)
       case Fun(id, funExp) => fun(id, funExp, env, mode)

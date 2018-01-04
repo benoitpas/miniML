@@ -190,4 +190,51 @@ class EvalSuite extends FunSuite {
     check(isPrime + "13", 1)
     check(isPrime + "34", 0)
   }
+
+  test("Cantor's numbers") {
+    val K = "(fun n -> fun p -> (n+p)*(n+p+1)/2+n) "
+    val findu = "(fun q -> (fix f fun i -> ifz i*(i+1)/2 - q then i else f i - 1) q/2) "
+    val Ki1 = "(fun q -> fun u -> q-u*(u+1)/2) "
+    val Ki2 = "(fun q -> fun u -> u-q+u*(u+1)/2) "
+    val L = "let K=" + K + "in fun n -> fun p -> (K n p) + 1"
+
+    check(K + "1 2", 7)
+    check(K + "2 1", 8)
+    check(findu + "8", 3)
+
+    // K 1 3 = 11
+    check(K + "1 3", 11)
+    check(findu + "11", 4)
+    check(Ki1 + "11 4", 1)
+    check(Ki2 + "11 4", 3)
+
+    // K 7 11 = 178
+    check(K + "7 11", 178)
+    check(findu + "178", 18)
+    check(Ki1 + "178 18", 7)
+    check(Ki2 + "178 18", 11)
+
+    // polynom x^2+2x+5 value:
+    val pValue = "let L=" + L + "in L 5 (L 2 (L 1 0))"
+    check(pValue, 282)
+
+    // extract values from polynom
+    val nextCoef = "(fun v -> let u=" + findu + " v in " + Ki1 + " (v-1) u) "
+    val nextAcc = "(fun v -> let u=" + findu + " v in " + Ki2 + " (v-1) u) "
+    check(nextCoef + "282", 5)
+    check(nextAcc + "282", 18)
+    check(nextCoef + "18", 2)
+    check(nextAcc + "18", 3)
+    check(nextCoef + "3", 1)
+    check(nextAcc + "3", 0)
+
+    // Evaluate polynom coded as 282
+    //val evalPolygon = "let findu=" + findu +" in let Ki1=" + Ki1 + " in let Ki2=" + Ki2
+    //+ "in (fun pValue -> fun x -> (fix f fun )"
+    //Need to use 'fix' with function of 2 variables
+    val twoVars = "(fix f (fun i -> fun j -> ifz i then j else f (i-1) (j+1)) 10 2"
+    check(twoVars,12)
+
+
+  }
 }
