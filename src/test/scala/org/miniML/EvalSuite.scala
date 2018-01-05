@@ -92,12 +92,30 @@ class EvalSuite extends FunSuite {
   }
 
   test("variable shadowing 1") {
-    check("((fun x -> fun x -> x) 2) 3", 3)
+    check("(fun x -> fun x -> x) 2 3", 3)
   }
 
   test("variable shadowing 2") {
-    check("((fun x -> fun y -> ((fun x-> (x+y)) x )) 5) 4", 9)
+    check("(fun x -> fun y -> fun x-> x+y x*2) 5 4", 14)
   }
+
+  test("variable shadowing 3") {
+    check("(fun x -> x + 10 * ((fun x -> x + 10 * ((fun x -> x) 1)) 2)) 3", 123)
+  }
+
+  test("variable shadowing 4") {
+    check("let x = 3 in x + 10 * let x = 2 in x + 10 * let x = 1 in x", 123)
+  }
+
+  test("variable shadowing 5") {
+    check("let x = 5 in x + 10 * let y = 4 in y + 10 * let x = 3 in x + 10 * let y = 2 in y + 10 * let x = 1 in x", 12345)
+  }
+
+  test("variable shadowing 6") {
+    check("let f = fun x -> x*x*x in let f = fun x -> x*x in let f = fun x -> x in f 2", 2)
+  }
+
+
 
   test("function application 2") {
     check("let coco = fun x -> 2 * x in coco 10+0",20)
@@ -170,7 +188,6 @@ class EvalSuite extends FunSuite {
         + "let iPower = fun n -> fun f2 -> fun p -> ifz p then 1 else n * (f2 p - 1) in "
         + "let power = fun n -> fun p -> (yCombinator (iPower n) p) in "
         + "power 2 3", Integer(2*2*2))
-
   }
   
   test("factorial (with fix function)") {
