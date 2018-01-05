@@ -26,6 +26,18 @@ class EvalSuite extends FunSuite {
 
   def check(e: String, i: Int): Unit = check(e, i, None)
 
+  def checkFailure(e:String, error:String) {
+    val r1 = Eval(e, Eval.ByName)
+    assert(r1 == Left(error))
+
+    val r2 = Eval(e, Eval.ByValue)
+    assert(r2 == Left(error))
+  }
+
+  test("failed parsing") {
+    checkFailure(")", "Parsing Failed: [1.1] failure: '`('' expected but `)' found\n\n)\n^")
+  }
+
   test("addition") {
     check("5+4", 9)
   }

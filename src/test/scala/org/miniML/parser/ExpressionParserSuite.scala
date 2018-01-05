@@ -24,7 +24,7 @@ class ExpressionParserSuite extends FunSuite {
     val e = Sum( Product(Integer(4), Identifier("v")),Integer(0))
     assert(r.get == e, s"ExpressionParser")
   }
-  
+
   test("tripple sum") {
     val r = ep.parse("1 + 2 + 3")
     val e = Sum(Sum(1, 2), 3)
