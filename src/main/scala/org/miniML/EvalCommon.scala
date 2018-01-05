@@ -8,12 +8,9 @@ trait EvalCommon {
   
   val parser = new ExpressionParser()
 
-  def apply(s: String, mode: Mode = ByValue): Option[Expression] = {
+  def apply(s: String, mode: Mode = ByValue): Either[String,Expression] = {
     val r = parser.parse(s)
-    if (r.successful) Some(eval(r.get, mode)) else {
-      println(r.toString)
-      None
-    }
+    if (r.successful) Right(eval(r.get, mode)) else Left("Parsing Failed: " + r.toString)
   }
 
   def identifier(s: String, mode: Mode): Expression

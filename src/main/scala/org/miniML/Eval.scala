@@ -51,5 +51,4 @@ object Eval extends EvalCommon {
       case x                             => x
     }
   }
-
 }
