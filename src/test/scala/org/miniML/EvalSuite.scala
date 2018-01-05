@@ -16,22 +16,25 @@ class EvalSuite extends FunSuite {
   def check(e: String, exp: Expression, mode:Option[Eval.Mode] = None) {
     if (mode.isEmpty || mode.contains(Eval.ByName)) {
       val r1 = Eval(e, Eval.ByName)
-      assert(r1.contains(exp))
+      assert(r1 == Right(exp))
     }
     if (mode.isEmpty || mode.contains(Eval.ByValue)) {
       val r2 = Eval(e, Eval.ByValue)
-      assert(r2.contains(exp))
+      assert(r2 == Right(exp))
     }
   }
 
   def check(e: String, i: Int): Unit = check(e, i, None)
 
-  def checkFailure(e:String, error:String) {
-    val r1 = Eval(e, Eval.ByName)
-    assert(r1 == Left(error))
-
-    val r2 = Eval(e, Eval.ByValue)
-    assert(r2 == Left(error))
+  def checkFailure(e:String, error:String, mode:Option[Eval.Mode] = None) {
+    if (mode.isEmpty || mode.contains(Eval.ByName)) {
+      val r1 = Eval(e, Eval.ByName)
+      assert(r1 == Left(error))
+    }
+    if (mode.isEmpty || mode.contains(Eval.ByValue)) {
+      val r2 = Eval(e, Eval.ByValue)
+      assert(r2 == Left(error))
+    }
   }
 
   test("failed parsing") {
@@ -43,7 +46,7 @@ class EvalSuite extends FunSuite {
   }
 
   test("addition and free variable") {
-    check("5+coco", Sum(5, "coco"))
+    checkFailure("5+coco", "coco: Cannot be evaluated as an integer")
   }
 
   test("addition and multiplication") {
@@ -76,7 +79,8 @@ class EvalSuite extends FunSuite {
   }
 
   test("let test : free variable") {
-    check("let y=5+(4*v) in y+1", Sum(Sum(5, Product(4, "v")), 1))
+    checkFailure("let y=5+(4*v) in y+1", "5 + 4 * v: Cannot be evaluated as an integer", Some(Eval.ByName))
+    checkFailure("let y=5+(4*v) in y+1", "4 * v: Cannot be evaluated as an integer", Some(Eval.ByValue))
   }
 
   test("simple ifz test") {
@@ -88,7 +92,7 @@ class EvalSuite extends FunSuite {
   }
   
   test("ifz test with functions") {
-    check("ifz 0 then fun x -> x + 1 else fun x->x*x", Fun("x", Sum("x", 1)))
+    checkFailure("ifz 0 then fun x -> x + 1 else fun x->x*x", "fun x -> x + 1: Cannot be evaluated as an integer")
   }
  
   test("simple function test") {

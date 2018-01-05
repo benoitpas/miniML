@@ -5,28 +5,38 @@ import org.miniML.parser._
 object Eval extends EvalCommon {
 
   // Should never be called, identifiers should have been replaced by their values
-  // TODO: raise error
-  def identifier(s: String, mode: Mode) = Identifier(s)
+  def identifier(s: String, mode: Mode) = Left(s + ": Unknown identifier")
 
-  def let(id: Identifier, e1: Expression, e2: Expression, mode: Mode) : Expression = {
-    val v = if (mode == Eval.ByValue) eval(e1,mode) else e1
-    eval(replaceAll(e2, id, v), mode)
+  def let(id: Identifier, e1: Expression, e2: Expression, mode: Mode) : EExpression = {
+    if (mode == Eval.ByValue) eval(e1,mode) match {
+      case Right(v) => eval(replaceAll(e2, id, v), mode)
+      case x => x
+    } else eval(replaceAll(e2, id, e1), mode)
   }
     
-  def funApp(funExp: Expression, exp: Expression, mode: Mode) : Expression  = {
-    val v = if (mode == Eval.ByValue ) eval(exp,mode) else exp
-    val replaced = eval(funExp, mode) match {
-      case Fun(id1, funExp1) =>
-        val r = replaceAll(funExp1, id1, v);// println("r=" + r.toString());
-        r
-      case x                    => println("x=" + x.toString); exp  // TODO:raise an error
+  def funApp(funExp: Expression, exp: Expression, mode: Mode) : EExpression  = {
+
+    def application(v: Expression):EExpression = {
+
+    eval(funExp, mode) match {
+      case Right(Fun(id1, funExp1)) =>
+        val r = replaceAll(funExp1, id1, v); // println("r=" + r.toString());
+        eval(r, mode)
+      case Right(_) => Left(funExp +": Did not evaluate as a function")
+      case x => x
     }
-    eval(replaced, mode)
+
+  }
+    if (mode == Eval.ByValue ) eval(exp,mode) match {
+      case Right(v) => application(v)
+      case x => x
+    } else application(exp)
+
   }
 
-  def fun(id: Identifier, funExp: Expression, mode: Mode) = Fun(id, funExp)
+  def fun(id: Identifier, funExp: Expression, mode: Mode) = Right(Fun(id, funExp))
   
-  def fix(fid: Identifier, id: Identifier, funExp: Expression, mode: Mode) = Fun(id, replaceAll(funExp,fid,Fix(fid,Fun(id,funExp))))
+  def fix(fid: Identifier, id: Identifier, funExp: Expression, mode: Mode) = Right(Fun(id, replaceAll(funExp,fid,Fix(fid,Fun(id,funExp)))))
 
   // Replaces id1 in exp2 by funExp1
   def replace(funExp1: Expression, id1: Identifier, exp2: Expression): Expression = {
