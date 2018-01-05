@@ -166,8 +166,8 @@ class EvalSuite extends FunSuite {
   }
 
   def check(e1: Expression, e2: Expression) : Unit = {
-    val byValue = Eval.eval(e1, Map(), Eval.ByValue)
-    val byName = Eval.eval(e1, Map(), Eval.ByValue)
+    val byValue = Eval.eval(e1, Eval.ByValue)
+    val byName = Eval.eval(e1, Eval.ByValue)
     assert(byValue == e2)
     assert(byName == e2)
   }
@@ -248,8 +248,7 @@ class EvalSuite extends FunSuite {
     val evalPolygon = "(let findu=" + findu +" in let Ki1=" + Ki1 + " in let Ki2=" + Ki2 + "in " +
         "(fun pValue -> fun x -> (fix f fun pValue -> fun xn -> fun ret -> ifz pValue then ret else " +
         "let pValueDec = pValue-1 in let u = findu pValueDec in f (Ki2 pValueDec u) xn*x xn*(Ki1 pValueDec u)+ret) pValue 1 0)) "
-    check(evalPolygon+" 282 13", 13*13+2*13+5, Some(Eval.ByName)) // TODO: Check why Eval.ByValue fails
-
+    check(evalPolygon+" 282 13", 13*13+2*13+5)
   }
 
   test("Sum of squares") {
