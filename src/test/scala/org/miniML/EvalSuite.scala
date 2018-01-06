@@ -167,17 +167,17 @@ class EvalSuite extends FunSuite {
   }
 
   test("combine functions") {
-    check("let f = fun x -> x * 2 in let g = fun x -> x + 1 in let combine = fun f1 -> fun f2 -> fun x -> (f1 (f2 x)) in ((combine g) f) 1",3)
+    check("let f = fun x -> x * 2 in let g = fun x -> x + 1 in let combine = fun f1 -> fun f2 -> fun x -> (f1 (f2 x)) in combine g f 1",3)
   }
 
   test("iFactorial test") {
-    check("let id = fun x -> x in let iFact = fun f -> fun n -> ifz n then 1 else (n * (f (n-1))) in iFact id 0", 1)
+    check("let id = fun x -> x in let iFact = fun f -> fun n -> ifz n then 1 else (n * (f n-1)) in iFact id 0", 1)
 
-    check("let id = fun x -> x in let iFact = fun f -> fun n -> ifz n then 1 else (n * (f (n-1))) in iFact (iFact id) 1", 1)
+    check("let id = fun x -> x in let iFact = fun f -> fun n -> ifz n then 1 else (n * (f n-1)) in iFact (iFact id) 1", 1)
 
-    check("let id = fun x -> x in let iFact = fun f -> fun n -> ifz n then 1 else (n * (f (n-1))) in iFact (iFact (iFact id)) 2", 2)
+    check("let id = fun x -> x in let iFact = fun f -> fun n -> ifz n then 1 else (n * (f n-1)) in iFact (iFact (iFact id)) 2", 2)
 
-    check("let id = fun x -> x in let iFact = fun f -> fun n -> ifz n then 1 else (n * (f (n-1))) in iFact (iFact (iFact (iFact id))) 3", 6)
+    check("let id = fun x -> x in let iFact = fun f -> fun n -> ifz n then 1 else (n * (f n-1)) in iFact (iFact (iFact (iFact id))) 3", 6)
 
   }
 
