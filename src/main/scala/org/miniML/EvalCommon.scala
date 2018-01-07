@@ -2,13 +2,8 @@ package org.miniML
 import org.miniML.parser._
 
 trait EvalCommon {
-  sealed trait Mode
-  case object ByValue extends Mode
-  case object ByName extends Mode
-
-  val parser = new ExpressionParser()
-
   type EExpression = Either[String,Expression]
+  val parser = new ExpressionParser()
 
   def apply(s: String, mode: Mode = ByValue): EExpression = {
     val r = parser.parse(s)
@@ -16,9 +11,13 @@ trait EvalCommon {
   }
 
   def identifier(s: String, mode: Mode): EExpression
+
   def let(id: Identifier, e1: Expression, e2: Expression, mode: Mode): EExpression
+
   def funApp(funExp: Expression, exp: Expression, mode: Mode): EExpression
+
   def fun(id: Identifier, funExp: Expression, mode: Mode): EExpression
+
   def fix(fid: Identifier, id: Identifier, funExp: Expression, mode: Mode): EExpression
 
   def eval(exp: Expression, mode: Mode): EExpression = {
@@ -27,10 +26,10 @@ trait EvalCommon {
     def combine(exp1: Expression, exp2: Expression, op: (Int,Int) => Int) : EExpression =
       (eval(exp1, mode), eval(exp2, mode)) match {
         case (Right(Integer(i1)), Right(Integer(i2))) => Right(Integer(op(i1,i2)))
-        case (Right(Integer(i1)), _) => Left(exp2 + notInteger)
-        case (_,Right(Integer(i1))) => Left(exp1 + notInteger)
         case (Left(s), _) => Left(s)
         case (_, Left(s)) => Left(s)
+        case (Right(Integer(i1)), _) => Left(exp2 + notInteger)
+        case (_,_) => Left(exp1 + notInteger)
       }
 
     def intEval(exp: Expression) = eval(exp, mode) match {
@@ -57,5 +56,11 @@ trait EvalCommon {
       case _ => Left(exp + ": Unable to evaluate")
     }
   }
+
+  sealed trait Mode
+
+  case object ByValue extends Mode
+
+  case object ByName extends Mode
 
 }

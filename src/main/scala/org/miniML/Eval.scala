@@ -8,30 +8,24 @@ object Eval extends EvalCommon {
   def identifier(s: String, mode: Mode) = Left(s + ": Unknown identifier")
 
   def let(id: Identifier, e1: Expression, e2: Expression, mode: Mode) : EExpression = {
-    if (mode == Eval.ByValue) eval(e1,mode) match {
-      case Right(v) => eval(replaceAll(e2, id, v), mode)
-      case x => x
-    } else eval(replaceAll(e2, id, e1), mode)
+    if (mode == Eval.ByValue)
+      eval(e1,mode).flatMap((v:Expression) => eval(replaceAll(e2, id, v), mode))
+    else
+      eval(replaceAll(e2, id, e1), mode)
   }
     
   def funApp(funExp: Expression, exp: Expression, mode: Mode) : EExpression  = {
 
-    def application(v: Expression):EExpression = {
-
-    eval(funExp, mode) match {
-      case Right(Fun(id1, funExp1)) =>
-        val r = replaceAll(funExp1, id1, v); // println("r=" + r.toString());
-        eval(r, mode)
-      case Right(_) => Left(funExp +": Did not evaluate as a function")
-      case x => x
+    def application(v: Expression) : EExpression = {
+      eval(funExp, mode).flatMap {
+        case Fun(id1, funExp1) =>
+          val r = replaceAll(funExp1, id1, v); // println("r=" + r.toString());
+          eval(r, mode)
+        case _ => Left(funExp +": Did not evaluate as a function")
+      }
     }
 
-  }
-    if (mode == Eval.ByValue ) eval(exp,mode) match {
-      case Right(v) => application(v)
-      case x => x
-    } else application(exp)
-
+    if (mode == Eval.ByValue ) eval(exp, mode).flatMap(application) else application(exp)
   }
 
   def fun(id: Identifier, funExp: Expression, mode: Mode) = Right(Fun(id, funExp))
@@ -58,7 +52,7 @@ object Eval extends EvalCommon {
   def replaceAll(funExp1: Expression, id1: Identifier, exp2: Expression): Expression = {
     replace(funExp1, id1, exp2) match {
       case FunApp(Fun(id, funExp), exp) => replaceAll(funExp, id, exp)
-      case x                             => x
+      case x => x
     }
   }
 }

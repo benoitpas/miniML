@@ -13,6 +13,8 @@ import org.miniML.parser.Identifier._
 @RunWith(classOf[JUnitRunner])
 class EvalSuite extends FunSuite {
 
+  def check(e: String, i: Int): Unit = check(e, i, None)
+
   def check(e: String, exp: Expression, mode:Option[Eval.Mode] = None) {
     if (mode.isEmpty || mode.contains(Eval.ByName)) {
       val r1 = Eval(e, Eval.ByName)
@@ -23,8 +25,6 @@ class EvalSuite extends FunSuite {
       assert(r2 == Right(exp))
     }
   }
-
-  def check(e: String, i: Int): Unit = check(e, i, None)
 
   def checkFailure(e:String, error:String, mode:Option[Eval.Mode] = None) {
     if (mode.isEmpty || mode.contains(Eval.ByName)) {
@@ -46,7 +46,7 @@ class EvalSuite extends FunSuite {
   }
 
   test("addition and free variable") {
-    checkFailure("5+coco", "coco: Cannot be evaluated as an integer")
+    checkFailure("5+coco", "coco: Unknown identifier")
   }
 
   test("addition and multiplication") {
@@ -79,8 +79,7 @@ class EvalSuite extends FunSuite {
   }
 
   test("let test : free variable") {
-    checkFailure("let y=5+(4*v) in y+1", "5 + 4 * v: Cannot be evaluated as an integer", Some(Eval.ByName))
-    checkFailure("let y=5+(4*v) in y+1", "4 * v: Cannot be evaluated as an integer", Some(Eval.ByValue))
+    checkFailure("let y=5+(4*v) in y+1", "v: Unknown identifier")
   }
 
   test("simple ifz test") {
