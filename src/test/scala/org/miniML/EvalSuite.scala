@@ -5,7 +5,6 @@ package org.miniML
 import org.junit.runner.RunWith
 import org.scalatest.FunSuite
 import org.scalatest.junit.JUnitRunner
-
 import org.miniML.parser._
 import org.miniML.parser.Integer._
 import org.miniML.parser.Identifier._
@@ -18,11 +17,11 @@ class EvalSuite extends FunSuite {
   def check(e: String, exp: Expression, mode:Option[Eval.Mode] = None) {
     if (mode.isEmpty || mode.contains(Eval.ByName)) {
       val r1 = Eval(e, Eval.ByName)
-      assert(r1 == Right(exp))
+      assert(r1 == Right(Eval.CExpression(exp, Eval.emptyContext)))
     }
     if (mode.isEmpty || mode.contains(Eval.ByValue)) {
       val r2 = Eval(e, Eval.ByValue)
-      assert(r2 == Right(exp))
+      assert(r2 == Right(Eval.CExpression(exp, Eval.emptyContext)))
     }
   }
 

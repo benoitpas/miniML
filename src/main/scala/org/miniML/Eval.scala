@@ -2,35 +2,46 @@ package org.miniML
 
 import org.miniML.parser._
 
+/*
+ * Evaluate expression by 'replacing' functions and lambdas
+ */
 object Eval extends EvalCommon {
 
+  type Context = Null
+
+  def emptyContext = null
+
+  // TODO: add implicit conversion from Expression to CExpression instead
+  def eval(e:Expression, mode: Mode) : EExpression = eval(CExpression(e, null), mode)
+
   // Should never be called, identifiers should have been replaced by their values
-  def identifier(s: String, mode: Mode) = Left(s + ": Unknown identifier")
+  def identifier(s: String, c:Context, mode: Mode) = Left(s + ": Unknown identifier")
 
-  def let(id: Identifier, e1: Expression, e2: Expression, mode: Mode) : EExpression = {
+  def let(id: Identifier, e1: Expression, e2: Expression, c: Context, mode: Mode): EExpression = {
     if (mode == Eval.ByValue)
-      eval(e1,mode).flatMap((v:Expression) => eval(replaceAll(e2, id, v), mode))
+      eval(e1, mode).flatMap((v: CExpression) => eval(replaceAll(e2, id, v.e), mode))
     else
-      eval(replaceAll(e2, id, e1), mode)
+      eval(CExpression(replaceAll(e2, id, e1), c), mode)
   }
-    
-  def funApp(funExp: Expression, exp: Expression, mode: Mode) : EExpression  = {
 
-    def application(v: Expression) : EExpression = {
-      eval(funExp, mode).flatMap {
-        case Fun(id1, funExp1) =>
-          val r = replaceAll(funExp1, id1, v); // println("r=" + r.toString());
+  def funApp(funExp: Expression, exp: Expression, c: Context, mode: Mode): EExpression = {
+
+    def application(v: CExpression): EExpression = {
+      eval(CExpression(funExp, c), mode).flatMap {
+        case CExpression(Fun(id1, funExp1), _) =>
+          val r = replaceAll(funExp1, id1, v.e); // println("r=" + r.toString());
           eval(r, mode)
-        case _ => Left(funExp +": Did not evaluate as a function")
+        case _ => Left(funExp + ": Did not evaluate as a function")
       }
     }
 
-    if (mode == Eval.ByValue ) eval(exp, mode).flatMap(application) else application(exp)
+    if (mode == Eval.ByValue ) eval(CExpression(exp,c), mode).flatMap(application) else application(CExpression(exp, c))
   }
 
-  def fun(id: Identifier, funExp: Expression, mode: Mode) = Right(Fun(id, funExp))
+  def fun(id: Identifier, funExp: Expression, c: Context, mode: Mode) = Right(CExpression(Fun(id, funExp), c))
   
-  def fix(fid: Identifier, id: Identifier, funExp: Expression, mode: Mode) = Right(Fun(id, replaceAll(funExp,fid,Fix(fid,Fun(id,funExp)))))
+  def fix(fid: Identifier, id: Identifier, funExp: Expression, c:Context, mode: Mode) =
+    Right(CExpression(Fun(id, replaceAll(funExp,fid,Fix(fid,Fun(id,funExp)))), c))
 
   // Replaces id1 in exp2 by funExp1
   def replace(funExp1: Expression, id1: Identifier, exp2: Expression): Expression = {
