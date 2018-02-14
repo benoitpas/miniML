@@ -1,5 +1,5 @@
 package org.miniML
-import org.miniML.parser.{Expression, _}
+import org.miniML.parser._
 
 trait EvalCommon {
   // Expression and context
@@ -9,7 +9,7 @@ trait EvalCommon {
   val parser = new ExpressionParser()
 
   //implicit def expression2CExpression(e: Expression): CExpression =
-  //  CExpression(e, new Context)
+  //  CExpression(e, emptyContext)
   def emptyContext: Context
 
   def apply(s: String, mode: Mode = ByValue): EExpression = {
@@ -26,6 +26,8 @@ trait EvalCommon {
   def fun(id: Identifier, funExp: Expression, c: Context, mode: Mode): EExpression
 
   def fix(fid: Identifier, id: Identifier, funExp: Expression, c: Context, mode: Mode): EExpression
+
+  def eval(e:Expression, mode: Mode) : EExpression = eval(CExpression(e, emptyContext), mode)
 
   def eval(exp: CExpression, mode: Mode): EExpression = {
 
@@ -71,5 +73,4 @@ trait EvalCommon {
   case object ByValue extends Mode
 
   case object ByName extends Mode
-
 }

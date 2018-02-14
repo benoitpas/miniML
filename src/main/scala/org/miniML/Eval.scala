@@ -11,9 +11,6 @@ object Eval extends EvalCommon {
 
   def emptyContext = null
 
-  // TODO: add implicit conversion from Expression to CExpression instead
-  def eval(e:Expression, mode: Mode) : EExpression = eval(CExpression(e, null), mode)
-
   // Should never be called, identifiers should have been replaced by their values
   def identifier(s: String, c:Context, mode: Mode) = Left(s + ": Unknown identifier")
 

@@ -29,19 +29,16 @@ class EvalSuite extends FunSuite {
     }
   }
 
-  def eAssert(value:Either[String,Eval.CExpression], expected:Expression): Unit = {
-    assert( value match {
-      case Right(Eval.CExpression(vExp,_)) => vExp == expected
-      case _ => false
-    })
-  }
+  def eAssert(value:Either[String,Eval.CExpression], expected:Expression): Unit = value match {
+      case Right(Eval.CExpression(vExp,_)) => assert(vExp == expected)
+      case Left(s) => assert(false, s)
+    }
 
-  def iAssert(value:Either[String, Interpret.CExpression], expected:Expression): Unit = {
-    assert( value match {
-      case Right(Interpret.CExpression(vExp,_)) => vExp == expected
-      case _ => false
-    })
-  }
+  def iAssert(value:Either[String, Interpret.CExpression], expected:Expression): Unit =
+    value match {
+      case Right(Interpret.CExpression(vExp,_)) =>assert(  vExp == expected)
+      case Left(s) => assert(false, s)
+    }
 
   def checkFailure(e:String, error:String, mode:Option[Eval.Mode] = None) {
     if (mode.isEmpty || mode.contains(Eval.ByName)) {
@@ -147,8 +144,6 @@ class EvalSuite extends FunSuite {
     check("let f = fun x -> x*x*x in let f = fun x -> x*x in let f = fun x -> x in f 2", 2)
   }
 
-
-
   test("function application 2") {
     check("let coco = fun x -> 2 * x in coco 10+0", 20)
   }
@@ -198,10 +193,14 @@ class EvalSuite extends FunSuite {
   }
 
   def check(e1: Expression, e2: Expression) : Unit = {
-    val byValue = Eval.eval(e1, Eval.ByValue)
-    val byName = Eval.eval(e1, Eval.ByValue)
-    assert(byValue == e2)
-    assert(byName == e2)
+    val eByValue = Eval.eval(e1, Eval.ByValue)
+    val eByName = Eval.eval(e1, Eval.ByName)
+    assert(eByValue == e2)
+    assert(eByName == e2)
+    val iByValue = Interpret.eval(e1, Interpret.ByValue)
+    val iByName = Interpret.eval(e1, Interpret.ByName)
+    assert(iByValue == e2)
+    assert(iByName == e2)
   }
   
   test("factorial (with Y combinator)") {

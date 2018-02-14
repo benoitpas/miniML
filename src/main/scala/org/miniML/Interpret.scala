@@ -1,10 +1,7 @@
 package org.miniML
 
-import org.miniML.parser.{Expression, Fun, Identifier}
+import org.miniML.parser.{Expression, Fix, Fun, Identifier}
 
-/**
-  * Created by arundhathi on 03/02/18.
-  */
 object Interpret extends EvalCommon {
 
     override type Context = Map[String, CExpression]
@@ -38,7 +35,7 @@ object Interpret extends EvalCommon {
     def fun(id: Identifier, funExp: Expression, c: Context, mode: Mode): EExpression = Right(CExpression(Fun(id, funExp), c))
 
     def fix(fid: Identifier, id: Identifier, funExp: Expression, c: Context, mode: Mode): EExpression =
-        Right(CExpression(Fun(id, funExp),c + (fid.toString() -> CExpression(funExp,c))))
+        Right(CExpression(Fun(id, funExp), c + (fid.toString() -> CExpression(Fix(fid, Fun(id, funExp)), c))))
 
 
 }
