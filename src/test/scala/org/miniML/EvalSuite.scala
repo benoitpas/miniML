@@ -17,12 +17,30 @@ class EvalSuite extends FunSuite {
   def check(e: String, exp: Expression, mode:Option[Eval.Mode] = None) {
     if (mode.isEmpty || mode.contains(Eval.ByName)) {
       val r1 = Eval(e, Eval.ByName)
-      assert(r1 == Right(Eval.CExpression(exp, Eval.emptyContext)))
+      eAssert(r1, exp)
+      val r2 = Interpret(e, Interpret.ByName)
+      iAssert(r2, exp)
     }
     if (mode.isEmpty || mode.contains(Eval.ByValue)) {
-      val r2 = Eval(e, Eval.ByValue)
-      assert(r2 == Right(Eval.CExpression(exp, Eval.emptyContext)))
+      val r1 = Eval(e, Eval.ByValue)
+      eAssert(r1, exp)
+      val r2 = Interpret(e, Interpret.ByValue)
+      iAssert(r2, exp)
     }
+  }
+
+  def eAssert(value:Either[String,Eval.CExpression], expected:Expression): Unit = {
+    assert( value match {
+      case Right(Eval.CExpression(vExp,_)) => vExp == expected
+      case _ => false
+    })
+  }
+
+  def iAssert(value:Either[String, Interpret.CExpression], expected:Expression): Unit = {
+    assert( value match {
+      case Right(Interpret.CExpression(vExp,_)) => vExp == expected
+      case _ => false
+    })
   }
 
   def checkFailure(e:String, error:String, mode:Option[Eval.Mode] = None) {
@@ -132,7 +150,7 @@ class EvalSuite extends FunSuite {
 
 
   test("function application 2") {
-    check("let coco = fun x -> 2 * x in coco 10+0",20)
+    check("let coco = fun x -> 2 * x in coco 10+0", 20)
   }
 
   test("function application 3") {

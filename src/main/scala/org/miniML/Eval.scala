@@ -39,9 +39,9 @@ object Eval extends EvalCommon {
   }
 
   def fun(id: Identifier, funExp: Expression, c: Context, mode: Mode) = Right(CExpression(Fun(id, funExp), c))
-  
-  def fix(fid: Identifier, id: Identifier, funExp: Expression, c:Context, mode: Mode) =
-    Right(CExpression(Fun(id, replaceAll(funExp,fid,Fix(fid,Fun(id,funExp)))), c))
+
+  def fix(fid: Identifier, id: Identifier, funExp: Expression, c: Context, mode: Mode) =
+    Right(CExpression(Fun(id, replaceAll(funExp, fid, Fix(fid, Fun(id, funExp)))), c))
 
   // Replaces id1 in exp2 by funExp1
   def replace(funExp1: Expression, id1: Identifier, exp2: Expression): Expression = {

@@ -32,7 +32,7 @@ trait EvalCommon {
     val notInteger = ": Cannot be evaluated as an integer"
     def combine(exp1: Expression, exp2: Expression, op: (Int,Int) => Int, c:Context) : EExpression =
       (eval(CExpression(exp1,c), mode), eval(CExpression(exp2,c), mode)) match {
-        case (Right(CExpression(Integer(i1),_)), Right(CExpression(Integer(i2),_))) => Right(CExpression(Integer(op(i1,i2)),c))
+        case (Right(CExpression(Integer(i1), _)), Right(CExpression(Integer(i2), _))) => Right(CExpression(Integer(op(i1, i2)), emptyContext))
         case (Left(s), _) => Left(s)
         case (_, Left(s)) => Left(s)
         case (Right(CExpression(Integer(_),_)), _) => Left(exp2 + notInteger)
