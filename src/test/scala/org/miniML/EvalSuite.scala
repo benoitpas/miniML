@@ -51,6 +51,7 @@ class EvalSuite extends FunSuite {
     }
   }
 
+
   test("failed parsing") {
     checkFailure(")", "Parsing Failed: [1.1] failure: '`('' expected but `)' found\n\n)\n^")
   }
@@ -288,4 +289,24 @@ class EvalSuite extends FunSuite {
     check(sumSquares + "3", 1 + 2 * 2 + 3 * 3)
   }
 
+    test("Church encoding of boolean numbers") {
+        val eTrue = Fun("a",Fun("b","a"))
+        val eFalse = Fun("a",Fun("b","b"))
+        val e = "let true = fun a -> fun b -> a in " +
+                "let false = fun a -> fun b -> b in " +
+                "let not = fun p -> p false true in " +
+                "let and = fun a -> fun b -> a b false in " +
+                "let or = fun a -> fun b -> a true b in "
+
+        check(e + " not true", eFalse)
+        check(e + " not false",eTrue)
+        check(e + " and true true", eTrue)
+        check(e + " and true false", eFalse)
+        check(e + " and false true", eFalse)
+        check(e + " and false false", eFalse)
+        check(e + " or true true", eTrue)
+        check(e + " or true false", eTrue)
+        check(e + " or false true", eTrue)
+        check(e + " or false false", eFalse)
+    }
 }
