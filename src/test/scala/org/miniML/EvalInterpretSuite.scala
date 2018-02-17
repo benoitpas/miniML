@@ -10,7 +10,7 @@ import org.miniML.parser.Integer._
 import org.miniML.parser.Identifier._
 
 @RunWith(classOf[JUnitRunner])
-class EvalSuite extends FunSuite {
+class EvalInterpretSuite extends FunSuite {
 
   def check(e: String, i: Int): Unit = check(e, i, None)
 
