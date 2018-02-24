@@ -192,17 +192,6 @@ class EvalInterpretSuite extends FunSuite {
     check("let id = fun x -> x in let iFact = fun f -> fun n -> ifz n then 1 else (n * (f n-1)) in iFact (iFact (iFact (iFact id))) 3", 6)
 
   }
-
-  def check(e1: Expression, e2: Expression) : Unit = {
-    val eByValue = Eval.eval(e1, Eval.ByValue)
-    val eByName = Eval.eval(e1, Eval.ByName)
-    assert(eByValue == e2)
-    assert(eByName == e2)
-    val iByValue = Interpret.eval(e1, Interpret.ByValue)
-    val iByName = Interpret.eval(e1, Interpret.ByName)
-    assert(iByValue == e2)
-    assert(iByName == e2)
-  }
   
   test("factorial (with Y combinator)") {
     val fact2 =
