@@ -8,7 +8,7 @@ class ExpressionParser extends StandardTokenParsers {
   lexical.delimiters ++= List("(",")","=","->","+","-","*","/")
   lexical.reserved ++= Set("let", "in", "fun", "ifz", "then", "else","fix")
 
-  def identifier = ident ^^ { case s => Identifier(s) }
+  def identifier : Parser[Identifier] = ident ^^ { case s => Identifier(s) }
   def integer = numericLit ^^ { case s => Integer(s.toInt) }
   def pterm = "(" ~> expression <~ ")" ^^ { case e => e }
   def iPTerm = "(" ~> iExpression <~ ")" ^^ { case e => e }
@@ -42,54 +42,62 @@ class ExpressionParser extends StandardTokenParsers {
   def lExpression: Parser[Expression] =  fix | fun | ifz | let | iSum | iProduct | identifier | integer | pterm
   def expression: Parser[Expression] =  funApp | lExpression
 
-  def parse(s:String) = expression(new lexical.Scanner(s))
+  def parse(s:String) : ParseResult[Expression] = expression(new lexical.Scanner(s))
 }
 
-abstract trait Expression {
+trait Expression {
 //  implicit def int2Expression(x: Int): Expression = int2Integer(x: Int)
 }
-case class Product(e1: Expression, e2: Expression) extends Expression {
-  override def toString() = e1 + " * " + e2
+
+sealed case class Product(e1: Expression, e2: Expression) extends Expression {
+  override def toString : String = e1 + " * " + e2
 }
 
-case class Division(e1: Expression, e2: Expression) extends Expression {
-  override def toString() = e1 + " / " + e2
+sealed case class Division(e1: Expression, e2: Expression) extends Expression {
+  override def toString : String = e1 + " / " + e2
 }
 
-case class Sum(e1: Expression, e2: Expression) extends Expression {
-  override def toString() = e1 + " + " + e2  
+sealed case class Sum(e1: Expression, e2: Expression) extends Expression {
+  override def toString : String = e1 + " + " + e2
 }
-case class Minus(e1: Expression, e2: Expression) extends Expression {
-  override def toString() = e1 + " - " + e2  
+
+sealed case class Minus(e1: Expression, e2: Expression) extends Expression {
+  override def toString : String = e1 + " - " + e2
 }
-case class Identifier(s: String) extends Expression {
-  override def toString() = s  
+
+sealed case class Identifier(s: String) extends Expression {
+  override def toString : String = s
 }
+
 object Identifier {
   implicit def int2Identifier(s: String): Identifier = new Identifier(s)
 }
-case class Integer(i: Int) extends Expression {
-  override def toString() = i.toString()
+
+sealed case class Integer(i: Int) extends Expression {
+  override def toString : String = i.toString
 }
+
 object Integer {
   implicit def int2Integer(x: Int): Integer = new Integer(x)
 }
-case class Let(id: Identifier, e1: Expression, e2: Expression) extends Expression {
-  override def toString() = "let " + id + " = " + e1 + " in " + e2
-}
-case class Ifz(cExp:Expression, zExp:Expression, nZExp:Expression) extends Expression {
-  override def toString() = "ifz " + cExp + " then " + zExp + " else " + nZExp
-}
-case class Fun(variable: Identifier, e: Expression) extends Expression {
-  override def toString() = "fun " + variable + " -> " + e
+
+sealed case class Let(id: Identifier, e1: Expression, e2: Expression) extends Expression {
+  override def toString : String = "let " + id + " = " + e1 + " in " + e2
 }
 
-case class Fix(variable: Identifier, e: Expression) extends Expression {
-  override def toString() = "fix " + variable + " " + e
+sealed case class Ifz(cExp:Expression, zExp:Expression, nZExp:Expression) extends Expression {
+  override def toString : String = "ifz " + cExp + " then " + zExp + " else " + nZExp
+}
+sealed case class Fun(variable: Identifier, e: Expression) extends Expression {
+  override def toString : String = "fun " + variable + " -> " + e
 }
 
-case class FunApp(funExp: Expression, exp: Expression) extends Expression {
-//  override def toString() = "(" + funExp + " " + exp + ")"
+sealed case class Fix(variable: Identifier, e: Expression) extends Expression {
+  override def toString : String = "fix " + variable + " " + e
+}
+
+sealed case class FunApp(funExp: Expression, exp: Expression) extends Expression {
+  override def toString : String = "(" + funExp + " " + exp + ")"
 }
 
 
