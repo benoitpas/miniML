@@ -2,7 +2,7 @@ package org.miniML
 
 import org.miniML.parser.{Expression, Fix, Fun, Identifier}
 
-object Interpret extends EvalCommon {
+object Interpret extends EvalInterpretCommon {
 
     override type Context = Map[String, CExpression]
 

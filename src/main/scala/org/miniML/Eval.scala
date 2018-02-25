@@ -5,7 +5,7 @@ import org.miniML.parser._
 /*
  * Evaluate expression by 'replacing' functions and lambdas
  */
-object Eval extends EvalCommon {
+object Eval extends EvalInterpretCommon {
 
   type Context = Null
 

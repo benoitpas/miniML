@@ -1,7 +1,7 @@
 package org.miniML
 import org.miniML.parser._
 
-trait EvalCommon {
+trait EvalInterpretCommon {
   // Expression and context
   type Context
   // Error or Expression/Context
