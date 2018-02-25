@@ -45,27 +45,27 @@ class ExpressionParser extends StandardTokenParsers {
   def parse(s:String) : ParseResult[Expression] = expression(new lexical.Scanner(s))
 }
 
-trait Expression {
+sealed trait Expression {
 //  implicit def int2Expression(x: Int): Expression = int2Integer(x: Int)
 }
 
-sealed case class Product(e1: Expression, e2: Expression) extends Expression {
+case class Product(e1: Expression, e2: Expression) extends Expression {
   override def toString : String = e1 + " * " + e2
 }
 
-sealed case class Division(e1: Expression, e2: Expression) extends Expression {
+case class Division(e1: Expression, e2: Expression) extends Expression {
   override def toString : String = e1 + " / " + e2
 }
 
-sealed case class Sum(e1: Expression, e2: Expression) extends Expression {
+case class Sum(e1: Expression, e2: Expression) extends Expression {
   override def toString : String = e1 + " + " + e2
 }
 
-sealed case class Minus(e1: Expression, e2: Expression) extends Expression {
+case class Minus(e1: Expression, e2: Expression) extends Expression {
   override def toString : String = e1 + " - " + e2
 }
 
-sealed case class Identifier(s: String) extends Expression {
+case class Identifier(s: String) extends Expression {
   override def toString : String = s
 }
 
@@ -73,7 +73,7 @@ object Identifier {
   implicit def int2Identifier(s: String): Identifier = new Identifier(s)
 }
 
-sealed case class Integer(i: Int) extends Expression {
+case class Integer(i: Int) extends Expression {
   override def toString : String = i.toString
 }
 
@@ -81,22 +81,22 @@ object Integer {
   implicit def int2Integer(x: Int): Integer = new Integer(x)
 }
 
-sealed case class Let(id: Identifier, e1: Expression, e2: Expression) extends Expression {
+case class Let(id: Identifier, e1: Expression, e2: Expression) extends Expression {
   override def toString : String = "let " + id + " = " + e1 + " in " + e2
 }
 
-sealed case class Ifz(cExp:Expression, zExp:Expression, nZExp:Expression) extends Expression {
+case class Ifz(cExp:Expression, zExp:Expression, nZExp:Expression) extends Expression {
   override def toString : String = "ifz " + cExp + " then " + zExp + " else " + nZExp
 }
-sealed case class Fun(variable: Identifier, e: Expression) extends Expression {
+case class Fun(variable: Identifier, e: Expression) extends Expression {
   override def toString : String = "fun " + variable + " -> " + e
 }
 
-sealed case class Fix(variable: Identifier, e: Expression) extends Expression {
+case class Fix(variable: Identifier, e: Expression) extends Expression {
   override def toString : String = "fix " + variable + " " + e
 }
 
-sealed case class FunApp(funExp: Expression, exp: Expression) extends Expression {
+case class FunApp(funExp: Expression, exp: Expression) extends Expression {
   override def toString : String = "(" + funExp + " " + exp + ")"
 }
 
