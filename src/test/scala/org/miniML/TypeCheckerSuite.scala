@@ -17,12 +17,26 @@ class TypeCheckerSuite extends FunSuite {
 
     val ep = new ExpressionParser()
 
-    def check(s:String, et:EType) : Unit = {
+    def check(s: String, et: EType): Unit = {
         val t = TypeChecker(ep.parse(s).get)
         assert(t.contains(et))
     }
 
-    test("sum") {
-        check("2+2", TypeChecker.Nat())
+    def checkFailure(s: String, error: String) {
+        val t = TypeChecker(ep.parse(s).get)
+        assert(t.swap.contains(error))
     }
+
+    test("sum") {
+        check("1+2", TypeChecker.Nat())
+    }
+
+    test("let with integers") {
+        check("let a = 2 in a * 3", TypeChecker.Nat())
+    }
+
+    test("unknown identifier") {
+        checkFailure("a * 2", "a not defined. ")
+    }
+
 }
