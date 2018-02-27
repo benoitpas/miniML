@@ -1,6 +1,9 @@
+
 # miniML
 
 Implementation of miniML described in "Introduction to the theory of programming languages"(http://www.editions.polytechnique.fr/?afficherfiche=96, https://books.google.co.uk/books/about/Introduction_to_the_Theory_of_Programmin.html?id=hD7IEdT_6TYC&source=kp_cover&redir_esc=y&hl=en)
+
+[![Build Status](https://travis-ci.org/benoitpas/miniML.svg?branch=master)](https://travis-ci.org/benoitpas/miniML)
 
 miniML is a minimalist language based on ML (https://en.wikipedia.org/wiki/ML_(programming_language)).
 The interpreter can run in either 'call by name' or 'call by value'.
