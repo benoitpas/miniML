@@ -63,11 +63,12 @@ object TypeChecker {
             case _ => false
         }) flatMap (eq => Some(eq._2))
 
-        def findVariable(t: EType, equations: Equations): EType = t match {
+        def replaceVariable(t: EType, equations: Equations): EType = t match {
             case V(i) => findVariableFromIndex(i, equations) match {
                 case Some(t2) => t2
                 case _ => t
             }
+            case F(t1,t2) => F(replaceVariable(t1,equations), replaceVariable(t2,equations))
             case _ => t
         }
 
@@ -103,7 +104,7 @@ object TypeChecker {
             case Fun(idf, ef) =>
                 val nv = newVariable(equations, env)
                 TypeChecker(ef, env + (idf -> nv), equations).flatMap {
-                    case (t, eq) => Right(F(findVariable(nv, eq), t), eq)
+                    case (t, eq) => Right(replaceVariable(F(nv, t), eq), eq)
                 }
 
         }

@@ -66,9 +66,8 @@ class TypeCheckerSuite extends FunSuite {
         check("ifz 0 then 1 else 5", Nat())
     }
 
-    // TODO: Should return Nat() -> Nat()
     test("ifz with fun") {
-        check("fun x -> ifz x then x else x", F(Nat(), V(1)))
+        check("fun x -> ifz x then x else x", F(Nat(), Nat()))
     }
     test("incorrect ifz") {
         checkFailure("ifz 0 then 1 else fun x -> 1","1 and fun x -> 1 have incompatible types (Nat() and (V(1) -> Nat())). ")
