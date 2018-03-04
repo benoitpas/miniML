@@ -28,16 +28,30 @@ object TypeChecker {
             V(n + 1)
         }
 
+        def addNatEquation(eq: Equations, e: Expression, t: EType) = addEquation(eq, e, t, Integer(0), Nat()) match {
+            case Right(eq2) => Right(eq2)
+            case _ => Left(e + " type should be integer. ")
+        }
+
+        def checkCompatibility(t1: EType, t2: EType) = (t1, t2) match {
+            case (Nat(), F(_, _)) => false
+            case (F(_, _), Nat()) => false
+            case _ => true
+        }
+
+        def addEquation(eq: Equations, e1: Expression, t1: EType, e2: Expression, t2: EType): Either[String, Equations] =
+            if (checkCompatibility(t1, t2))
+                Right(if (t1 == t2) eq else eq + (t1 -> t2))
+            else
+                Left(e1 + " and " + e2 + " have incompatible types (" + t1 + " and " + t2 + "). ")
+
         def operation(e1: Expression, e2: Expression): Either[String, (EType, Equations)] = {
-            def addEquation(eq: Equations, t: EType) = t match {
-                case Nat() => eq
-                case _ => eq + (t -> Nat())
-            }
 
             (TypeChecker(e1, env, equations), TypeChecker(e2, env, equations)) match {
-                case (Right((t1, eq1)), Right((t2, eq2))) => Right((Nat(), addEquation(addEquation(eq1 ++ eq2, t1), t2)))
-                case (Right((Nat(), _)), Right((t, _))) => Left(t + " should be 'integer'.")
-                case (Right((t, _)), Right(_)) => Left(t + " should be 'integer'.")
+                case (Right((t1, eq1)), Right((t2, eq2))) => for {
+                    eq3 <- addNatEquation(eq1 ++ eq2, e1, t1)
+                    eq4 <- addNatEquation(eq3, e2, t2)
+                } yield (Nat(), eq4)
                 case (Left(s1), Left(s2)) => Left(s1 + s2)
                 case (Left(s1), _) => Left(s1)
                 case (_, Left(s2)) => Left(s2)
@@ -59,19 +73,33 @@ object TypeChecker {
 
         e match {
             case Integer(i) => Right(Nat(), Set())
+
             case Division(e1, e2) => operation(e1, e2)
             case Product(e1, e2) => operation(e1, e2)
             case Sum(e1, e2) => operation(e1, e2)
             case Minus(e1, e2) => operation(e1, e2)
-            case Let(id, e1, e2) =>
-                TypeChecker(e1, env, equations).flatMap {
-                    case (t1, eq1) => TypeChecker(e2, env + (id -> t1), equations ++ eq1)
-                }
+
+            case Let(id, e1, e2) => TypeChecker(e1, env, equations).flatMap {
+                case (t1, eq1) => TypeChecker(e2, env + (id -> t1), equations ++ eq1)
+            }
 
             case Identifier(s) => env.get(Identifier(s)) match {
                 case Some(t) => Right((t, Set()))
                 case None => Left(s + " not defined. ")
             }
+
+            case Ifz(cExp, zExp, nzExp) =>
+                TypeChecker(cExp, env, equations) flatMap {
+                    case (cType, cEquations) => TypeChecker(zExp, env, cEquations) flatMap {
+                        case (zType, zEquations) => TypeChecker(nzExp, env, zEquations) flatMap {
+                            case (nzType, nzEquations) =>  for {
+                                eq2 <- addNatEquation(nzEquations, cExp, cType)
+                                eq3 <- addEquation(eq2, zExp, zType, nzExp, nzType)
+                            } yield (zType, eq3)
+                        }
+                    }
+                }
+
             case Fun(idf, ef) =>
                 val nv = newVariable(equations, env)
                 TypeChecker(ef, env + (idf -> nv), equations).flatMap {

@@ -12,7 +12,7 @@ class TypeCheckerSuite extends FunSuite {
 
     test("integer") {
         val t = TypeChecker(Integer(0))
-        assert( t == Right((TypeChecker.Nat(), Set())))
+        assert(t == Right((TypeChecker.Nat(), Set())))
     }
 
     val ep = new ExpressionParser()
@@ -43,7 +43,7 @@ class TypeCheckerSuite extends FunSuite {
     }
 
     test("function with integers") {
-        check("fun a -> a * 3", F(Nat(),Nat()))
+        check("fun a -> a * 3", F(Nat(), Nat()))
     }
 
     test("identify function") {
@@ -51,15 +51,27 @@ class TypeCheckerSuite extends FunSuite {
     }
 
     test("identify function 2") {
-        check("fun b -> fun a -> a", F(V(1),  F(V(2), V(2))))
+        check("fun b -> fun a -> a", F(V(1), F(V(2), V(2))))
     }
 
     test("identify function varible shadowing") {
-        check("fun a -> fun a -> a", F(V(1),  F(V(2), V(2))))
+        check("fun a -> fun a -> a", F(V(1), F(V(2), V(2))))
     }
 
     test("addition function") {
-        check("fun a -> fun b -> a+b",F(Nat(),F(Nat(),Nat())))
+        check("fun a -> fun b -> a+b", F(Nat(), F(Nat(), Nat())))
+    }
+
+    test("simple ifz") {
+        check("ifz 0 then 1 else 5", Nat())
+    }
+
+    // TODO: Should return Nat() -> Nat()
+    test("ifz with fun") {
+        check("fun x -> ifz x then x else x", F(Nat(), V(1)))
+    }
+    test("incorrect ifz") {
+        checkFailure("ifz 0 then 1 else fun x -> 1","1 and fun x -> 1 have incompatible types (Nat() and (V(1) -> Nat())). ")
     }
 
     /*
