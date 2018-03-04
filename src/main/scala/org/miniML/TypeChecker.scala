@@ -5,12 +5,13 @@ import org.miniML.parser._
 object TypeChecker {
 
     type Equations = Set[(EType, EType)]
+    type Environment = Map[Identifier, EType]
 
-    def apply(e: Expression): Either[String, (EType,Equations)] = apply(e, Map[Identifier, EType](), Set[(EType, EType)]())
+    def apply(e: Expression): Either[String, (EType, Equations)] = apply(e, Map[Identifier, EType](), Set[(EType, EType)]())
 
-    def apply(e: Expression, env: Map[Identifier, EType], equations: Equations): Either[String, (EType, Equations)] = {
+    def apply(e: Expression, env: Environment, equations: Equations): Either[String, (EType, Equations)] = {
 
-        def newVariable(eq: Equations): EType = {
+        def newVariable(eq: Equations, env: Environment): EType = {
             def maxIndex(t: EType): Int = t match {
                 case Nat() => 0
                 case F(t1, t2) => Math.max(maxIndex(t1), maxIndex(t2))
@@ -18,20 +19,23 @@ object TypeChecker {
                 case V(i) => i
             }
 
-            val n = eq.foldLeft(0)((a, eq) => Math.max(a, Math.max(maxIndex(eq._1), maxIndex(eq._2))))
+            val nEquations = eq.foldLeft(0)((a, eq) => Math.max(a, Math.max(maxIndex(eq._1), maxIndex(eq._2))))
+            val nEnvironment = env.foldLeft(0)((n, typedExp) => typedExp._2 match {
+                case V(i) => Math.max(i, n)
+                case _ => n
+            })
+            val n = Math.max(nEquations, nEnvironment)
             V(n + 1)
         }
 
         def operation(e1: Expression, e2: Expression): Either[String, (EType, Equations)] = {
-            def addEquations(eq: Equations, t1: EType, t2: EType) = {
-                val v1 = newVariable(eq)
-                val eq2 = eq ++ Set((v1, Nat()))
-                val v2 = newVariable(eq2)
-                eq2 ++ Set((v2, Nat()))
+            def addEquation(eq: Equations, t: EType) = t match {
+                case Nat() => eq
+                case _ => eq + (t -> Nat())
             }
 
             (TypeChecker(e1, env, equations), TypeChecker(e2, env, equations)) match {
-                case (Right((t1, eq1)), Right((t2, eq2))) => Right((Nat(), addEquations(eq1 ++ eq2, t1, t2)))
+                case (Right((t1, eq1)), Right((t2, eq2))) => Right((Nat(), addEquation(addEquation(eq1 ++ eq2, t1), t2)))
                 case (Right((Nat(), _)), Right((t, _))) => Left(t + " should be 'integer'.")
                 case (Right((t, _)), Right(_)) => Left(t + " should be 'integer'.")
                 case (Left(s1), Left(s2)) => Left(s1 + s2)
@@ -40,12 +44,12 @@ object TypeChecker {
             }
         }
 
-        def findVariableFromIndex(i:Int, equations: Equations) = equations.find(eq => eq._1 match {
+        def findVariableFromIndex(i: Int, equations: Equations) = equations.find(eq => eq._1 match {
             case V(i2) if i == i2 => true
             case _ => false
-        }) flatMap( eq => Some(eq._2))
+        }) flatMap (eq => Some(eq._2))
 
-        def findVariable(t: EType, equations: Equations) : EType = t match {
+        def findVariable(t: EType, equations: Equations): EType = t match {
             case V(i) => findVariableFromIndex(i, equations) match {
                 case Some(t2) => t2
                 case _ => t
@@ -69,9 +73,9 @@ object TypeChecker {
                 case None => Left(s + " not defined. ")
             }
             case Fun(idf, ef) =>
-                val nv = newVariable(equations)
+                val nv = newVariable(equations, env)
                 TypeChecker(ef, env + (idf -> nv), equations).flatMap {
-                    case (t, eq) => Right(F(findVariable(nv,eq), t), eq)
+                    case (t, eq) => Right(F(findVariable(nv, eq), t), eq)
                 }
 
         }
@@ -87,5 +91,6 @@ object TypeChecker {
 
     case class X() extends EType
 
-    case class V(i:Int) extends EType
+    case class V(i: Int) extends EType
+
 }

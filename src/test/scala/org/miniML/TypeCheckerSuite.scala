@@ -19,9 +19,10 @@ class TypeCheckerSuite extends FunSuite {
 
     def check(s: String, et: EType): Unit = {
         val t = TypeChecker(ep.parse(s).get)
-        assert(t.isRight && t.right.get._1 == et)
         println(s)
+        assert(t.isRight)
         println(t.right.get)
+        assert(t.right.get._1 == et)
     }
 
     def checkFailure(s: String, error: String) {
@@ -49,8 +50,22 @@ class TypeCheckerSuite extends FunSuite {
         check("fun a -> a", F(V(1), V(1)))
     }
 
-    // TODO: Should be F(V(1),  F(V(2), V(2)))), need to check 'env' when generating new variable id
     test("identify function 2") {
-        check("fun b -> fun a -> a", F(V(1),  F(V(1), V(1))))
+        check("fun b -> fun a -> a", F(V(1),  F(V(2), V(2))))
     }
+
+    test("identify function varible shadowing") {
+        check("fun a -> fun a -> a", F(V(1),  F(V(2), V(2))))
+    }
+
+    test("addition function") {
+        check("fun a -> fun b -> a+b",F(Nat(),F(Nat(),Nat())))
+    }
+
+    /*
+    // TODO: Need to add function application to support that
+    test("Y combinator") {
+        check("fun f -> (fun x -> f (x x)) fun x -> f (x x)",Nat())
+    }
+    */
 }
