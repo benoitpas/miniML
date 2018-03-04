@@ -1,7 +1,7 @@
 package org.miniML
 
 import org.junit.runner.RunWith
-import org.miniML.TypeChecker.EType
+import org.miniML.TypeChecker.{EType, F, Nat, V}
 import org.scalatest.FunSuite
 import org.scalatest.junit.JUnitRunner
 import org.miniML.parser.{ExpressionParser, Integer}
@@ -12,14 +12,16 @@ class TypeCheckerSuite extends FunSuite {
 
     test("integer") {
         val t = TypeChecker(Integer(0))
-        assert( t == Right(TypeChecker.Nat()))
+        assert( t == Right((TypeChecker.Nat(), Set())))
     }
 
     val ep = new ExpressionParser()
 
     def check(s: String, et: EType): Unit = {
         val t = TypeChecker(ep.parse(s).get)
-        assert(t.contains(et))
+        assert(t.isRight && t.right.get._1 == et)
+        println(s)
+        println(t.right.get)
     }
 
     def checkFailure(s: String, error: String) {
@@ -39,4 +41,16 @@ class TypeCheckerSuite extends FunSuite {
         checkFailure("a * 2", "a not defined. ")
     }
 
+    test("function with integers") {
+        check("fun a -> a * 3", F(Nat(),Nat()))
+    }
+
+    test("identify function") {
+        check("fun a -> a", F(V(1), V(1)))
+    }
+
+    // TODO: Should be F(V(1),  F(V(2), V(2)))), need to check 'env' when generating new variable id
+    test("identify function 2") {
+        check("fun b -> fun a -> a", F(V(1),  F(V(1), V(1))))
+    }
 }
