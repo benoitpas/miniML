@@ -81,10 +81,13 @@ class TypeCheckerSuite extends FunSuite {
         check("let inc = fun x -> x + 1 in inc 2", Nat())
     }
 
-    /*
-    // TODO: Need to add function application to support that
-    test("Y combinator") {
-        check("fun f -> (fun x -> f (x x)) fun x -> f (x x)",Nat())
+    // TODO: Should be 'Nat()
+    test("combine functions") {
+        check("let f = fun x -> x * 2 in let g = fun x -> x + 1 in let combine = fun f1 -> fun f2 -> fun x -> (f1 (f2 x)) in combine g f 1", V(7))
     }
-    */
+
+    // TODO: shouldn't type check !
+    test("Y combinator") {
+        check("fun f -> (fun x -> f (x x)) fun x -> f (x x)", F(F(V(6), V(7)), V(4)))
+    }
 }

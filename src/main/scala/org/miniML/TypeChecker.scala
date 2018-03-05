@@ -107,14 +107,20 @@ object TypeChecker {
                     case (t, eq) => Right(replaceVariable(F(nv, t), eq), eq)
                 }
 
-            case FunApp(funExp,exp) => {
-                def FunAppCheck(funExp: Expression, fType:EType, exp: Expression, eType: EType, equations: Equations)
+            case FunApp(funExp, exp) => {
+                def FunAppCheck(funExp: Expression, fType:EType, exp: Expression, eType: EType, equations: Equations) : Either[String, (EType, Equations)]
                 = fType match {
                     case F(t1,t2) => addEquation(equations, funExp, t1, exp, eType) match {
-                        case Right(rEquations) => Right((t2, rEquations))
+                        case Right(rEquations) => Right(t2, rEquations)
                         case Left(s) => Left(s)
                     }
-                    case _ => Left(funExp +" should be a function. ")
+                    case V(i) =>
+                        val newVar = newVariable(equations, env)
+                        addEquation(equations, Integer(0),V(i),Integer(0),F(eType,newVar)) match {
+                            case Right(rEquations) => Right(newVar,rEquations)
+                            case Left(s) => Left(s)
+                        }
+                    case _ => Left(funExp +" should be am function. ")
                 }
 
                 TypeChecker(funExp, env, equations) flatMap {
