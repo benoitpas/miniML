@@ -107,6 +107,22 @@ object TypeChecker {
                     case (t, eq) => Right(replaceVariable(F(nv, t), eq), eq)
                 }
 
+            case FunApp(funExp,exp) => {
+                def FunAppCheck(funExp: Expression, fType:EType, exp: Expression, eType: EType, equations: Equations)
+                = fType match {
+                    case F(t1,t2) => addEquation(equations, funExp, t1, exp, eType) match {
+                        case Right(rEquations) => Right((t2, rEquations))
+                        case Left(s) => Left(s)
+                    }
+                    case _ => Left(funExp +" should be a function. ")
+                }
+
+                TypeChecker(funExp, env, equations) flatMap {
+                    case (fType, fEquations) => TypeChecker(exp, env, fEquations) flatMap {
+                        case (eType, eEquations) => FunAppCheck(funExp, fType, exp, eType, eEquations)
+                    }
+                }
+            }
         }
     }
 

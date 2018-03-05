@@ -20,6 +20,9 @@ class TypeCheckerSuite extends FunSuite {
     def check(s: String, et: EType): Unit = {
         val t = TypeChecker(ep.parse(s).get)
         println(s)
+        if (t.isLeft) {
+            println(t.left.get)
+        }
         assert(t.isRight)
         println(t.right.get)
         assert(t.right.get._1 == et)
@@ -69,8 +72,13 @@ class TypeCheckerSuite extends FunSuite {
     test("ifz with fun") {
         check("fun x -> ifz x then x else x", F(Nat(), Nat()))
     }
+
     test("incorrect ifz") {
         checkFailure("ifz 0 then 1 else fun x -> 1","1 and fun x -> 1 have incompatible types (Nat() and (V(1) -> Nat())). ")
+    }
+
+    test("simple function application") {
+        check("let inc = fun x -> x + 1 in inc 2", Nat())
     }
 
     /*
