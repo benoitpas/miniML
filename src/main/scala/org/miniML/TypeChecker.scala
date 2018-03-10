@@ -28,7 +28,7 @@ object TypeChecker {
             V(n + 1)
         }
 
-        def addNatEquation(eq: Equations, e: Expression, t: EType) = addEquation(eq, e, t, Integer(0), Nat()) match {
+        def addNatEquation(eq: Equations, e: Expression, t: EType) = addEquation2(eq, e, t, Integer(0), Nat()) match {
             case Right(eq2) => Right(eq2)
             case _ => Left(e + " type should be integer. ")
         }
@@ -36,10 +36,18 @@ object TypeChecker {
         def checkCompatibility(t1: EType, t2: EType) = (t1, t2) match {
             case (Nat(), F(_, _)) => false
             case (F(_, _), Nat()) => false
+            case (V(i),F(V(j), _)) if i == j => false
+            case (V(i), F(_, V(j))) if i == j => false
             case _ => true
         }
 
-        def addEquation(eq: Equations, e1: Expression, t1: EType, e2: Expression, t2: EType): Either[String, Equations] =
+        def addEquation(equations: Equations, e: Expression, equation: (EType,EType)): Either[String, Equations] =
+            if (checkCompatibility(equation._1, equation._2))
+                Right(if (equation._1 == equation._1) equations else equations + equation)
+            else
+                Left(e + " is not typable. ")
+
+        def addEquation2(eq: Equations, e1: Expression, t1: EType, e2: Expression, t2: EType): Either[String, Equations] =
             if (checkCompatibility(t1, t2))
                 Right(if (t1 == t2) eq else eq + (t1 -> t2))
             else
@@ -72,8 +80,10 @@ object TypeChecker {
             case _ => t
         }
 
+        def checkEquation(equations: Equations, eq:(EType,EType)) = Right(equations + eq)
+
         e match {
-            case Integer(i) => Right(Nat(), Set())
+            case Integer(i) => Right(Nat(), equations)
 
             case Division(e1, e2) => operation(e1, e2)
             case Product(e1, e2) => operation(e1, e2)
@@ -85,7 +95,7 @@ object TypeChecker {
             }
 
             case Identifier(s) => env.get(Identifier(s)) match {
-                case Some(t) => Right((t, Set()))
+                case Some(t) => Right((t, equations))
                 case None => Left(s + " not defined. ")
             }
 
@@ -95,7 +105,7 @@ object TypeChecker {
                         case (zType, zEquations) => TypeChecker(nzExp, env, zEquations) flatMap {
                             case (nzType, nzEquations) =>  for {
                                 eq2 <- addNatEquation(nzEquations, cExp, cType)
-                                eq3 <- addEquation(eq2, zExp, zType, nzExp, nzType)
+                                eq3 <- addEquation2(eq2, zExp, zType, nzExp, nzType)
                             } yield (zType, eq3)
                         }
                     }
@@ -107,27 +117,24 @@ object TypeChecker {
                     case (t, eq) => Right(replaceVariable(F(nv, t), eq), eq)
                 }
 
-            case FunApp(funExp, exp) => {
-                def FunAppCheck(funExp: Expression, fType:EType, exp: Expression, eType: EType, equations: Equations) : Either[String, (EType, Equations)]
+            case FunApp(funExp, exp) =>
+                def FunAppCheck(funExp: Expression, fType: EType, exp: Expression, eType: EType, equations: Equations): Either[String, (EType, Equations)]
                 = fType match {
-                    case F(t1,t2) => addEquation(equations, funExp, t1, exp, eType) match {
-                        case Right(rEquations) => Right(t2, rEquations)
-                        case Left(s) => Left(s)
-                    }
+                    case F(t1, t2) => for {
+                        rEquations <- addEquation2(equations, funExp, t1, exp, eType)
+                    } yield (t2, rEquations)
                     case V(i) =>
                         val newVar = newVariable(equations, env)
-                        addEquation(equations, Integer(0),V(i),Integer(0),F(eType,newVar)) match {
-                            case Right(rEquations) => Right(newVar,rEquations)
-                            case Left(s) => Left(s)
-                        }
-                    case _ => Left(funExp +" should be am function. ")
+                        for {
+                            rEquations <- addEquation(equations, e, V(i) -> F(eType, newVar))
+                        } yield (newVar, rEquations)
+                    case _ => Left(funExp + " should be am function. ")
                 }
 
                 TypeChecker(funExp, env, equations) flatMap {
                     case (fType, fEquations) => TypeChecker(exp, env, fEquations) flatMap {
                         case (eType, eEquations) => FunAppCheck(funExp, fType, exp, eType, eEquations)
                     }
-                }
             }
         }
     }
