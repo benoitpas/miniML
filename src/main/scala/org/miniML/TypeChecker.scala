@@ -20,10 +20,7 @@ object TypeChecker {
             }
 
             val nEquations = eq.foldLeft(0)((a, eq) => Math.max(a, Math.max(maxIndex(eq._1), maxIndex(eq._2))))
-            val nEnvironment = env.foldLeft(0)((n, typedExp) => typedExp._2 match {
-                case V(i) => Math.max(i, n)
-                case _ => n
-            })
+            val nEnvironment = env.foldLeft(0)((n, typedExp) => Math.max(n, maxIndex(typedExp._2)))
             val n = Math.max(nEquations, nEnvironment)
             V(n + 1)
         }
@@ -122,19 +119,23 @@ object TypeChecker {
                 = fType match {
                     case F(t1, t2) => for {
                         rEquations <- addEquation2(equations, funExp, t1, exp, eType)
-                    } yield (t2, rEquations)
+                    } yield (replaceVariable(t2,rEquations), rEquations)
                     case V(i) =>
                         val newVar = newVariable(equations, env)
                         for {
                             rEquations <- addEquation(equations, e, V(i) -> F(eType, newVar))
                         } yield (newVar, rEquations)
-                    case _ => Left(funExp + " should be am function. ")
+                    case _ => Left(funExp + " should be a function. ")
                 }
 
-                TypeChecker(funExp, env, equations) flatMap {
-                    case (fType, fEquations) => TypeChecker(exp, env, fEquations) flatMap {
-                        case (eType, eEquations) => FunAppCheck(funExp, fType, exp, eType, eEquations)
+                TypeChecker(exp, env, equations) flatMap {
+                    case (eType, eEquations) => val newEnv = funExp match {
+                        case Fun(idf, ef) => env + (idf -> eType)
+                        case _ => env
                     }
+                    TypeChecker(funExp, newEnv, eEquations) flatMap {
+                        case (fType, fEquations) => FunAppCheck(funExp, fType, exp, eType, fEquations)
+                }
             }
         }
     }
