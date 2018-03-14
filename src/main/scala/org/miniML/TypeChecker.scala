@@ -137,6 +137,9 @@ object TypeChecker {
                         case (fType, fEquations) => FunAppCheck(funExp, fType, exp, eType, fEquations)
                 }
             }
+            case Fix(id,exp) =>
+                val newVar = newVariable(equations, env)
+                TypeChecker(exp, env+ (id -> newVar), equations)
         }
     }
 
