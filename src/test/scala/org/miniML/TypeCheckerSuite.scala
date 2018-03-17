@@ -1,7 +1,7 @@
 package org.miniML
 
 import org.junit.runner.RunWith
-import org.miniML.TypeChecker.{EType, F, Nat, V}
+import org.miniML.TypeChecker._
 import org.scalatest.FunSuite
 import org.scalatest.junit.JUnitRunner
 import org.miniML.parser.{ExpressionParser, Integer}
@@ -18,7 +18,7 @@ class TypeCheckerSuite extends FunSuite {
     val ep = new ExpressionParser()
 
     def check(s: String, et: EType): Unit = {
-        val t = TypeChecker(ep.parse(s).get)
+        val t: Either[String, (EType, Equations)] = TypeChecker(ep.parse(s).get)
         println(s)
         if (t.isLeft) {
             println(t.left.get)
@@ -99,7 +99,12 @@ class TypeCheckerSuite extends FunSuite {
     }
 
     test("fix test") {
-        check("(fix f fun n -> (ifz n then 1 else (n * (f (n -1)))))", F(Nat(),Nat()));
+        check("(fix f fun n -> (ifz n then 1 else (n * (f (n -1)))))", F(Nat(),Nat()))
+    }
+
+    test("fix test 2") {
+        val sumSquares = "(fun n -> (fix f fun i -> fun j -> ifz i then j else f (i-1) j+i) n 0) "
+        check(sumSquares + "2", Nat())
     }
 
 }

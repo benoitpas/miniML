@@ -3,6 +3,7 @@
 package org.miniML
 
 import org.junit.runner.RunWith
+import org.miniML.TypeChecker.{EType, F, Nat, V}
 import org.scalatest.FunSuite
 import org.scalatest.junit.JUnitRunner
 import org.miniML.parser._
@@ -12,9 +13,16 @@ import org.miniML.parser.Identifier._
 @RunWith(classOf[JUnitRunner])
 class EvalInterpretSuite extends FunSuite {
 
-  def check(e: String, i: Int): Unit = check(e, i, None)
+  val ep = new ExpressionParser()
 
-  def check(e: String, exp: Expression, mode:Option[Eval.Mode] = None) {
+  def check(e: String, exp: Expression, mode: Option[Eval.Mode] = None, eType: Option[EType] = Some(Nat())) {
+
+    val t = TypeChecker(ep.parse(e).get)
+    eType match {
+      case Some(et) => assert(t.isRight && t.right.get._1 == et)
+      case None => assert(t.isLeft)
+    }
+
     if (mode.isEmpty || mode.contains(Eval.ByName)) {
       val r1 = Eval(e, Eval.ByName)
       eAssert(r1, exp)
@@ -86,7 +94,8 @@ class EvalInterpretSuite extends FunSuite {
   }
 
   test("simple let test (call by name)") {
-    check("let f = fun x-> (x x) in let v = f f in 1", 1, Some(Eval.ByName))
+    // (x x) is not typable
+    check("let f = fun x-> (x x) in let v = f f in 1", 1, Some(Eval.ByName), None)
   }
 
   test("simple nested let test") {
@@ -98,7 +107,7 @@ class EvalInterpretSuite extends FunSuite {
   }
 
   test("simple ifz test") {
-    check("ifz 1 then (let f = fun x-> (x x) in (f f)) else 0", 0)
+    check("ifz 1 then (let f = fun x-> (x x) in (f f)) else 0", 0, eType = None)
   }
 
   test("ifz test with expressions") {
@@ -110,11 +119,11 @@ class EvalInterpretSuite extends FunSuite {
   }
  
   test("simple function test") {
-    check("fun a -> a + 1", Fun("a", Sum("a", 1)))
+    check("fun a -> a + 1", Fun("a", Sum("a", 1)), eType = Some(F(Nat(), Nat())))
   }
 
   test("double function test") {
-    check("fun a -> fun b -> b + a", Fun("a", Fun("b", Sum("b", "a"))))
+    check("fun a -> fun b -> b + a", Fun("a", Fun("b", Sum("b", "a"))), eType=Some(F(Nat(), F(Nat(), Nat()))))
   }
 
   test("function application 1") {
@@ -167,7 +176,7 @@ class EvalInterpretSuite extends FunSuite {
 
   // This would not finish when evaluated by value
   test("function for call by name") {
-    check("let f1 = fun a -> 1 in let f2 = fun x-> (x x) in 2 + (f1 (f2 f2))", 3, Some(Eval.ByName))
+    check("let f1 = fun a -> 1 in let f2 = fun x-> (x x) in 2 + (f1 (f2 f2))", 3, Some(Eval.ByName), None)
   }
 
   test("combining simple functions 1") {
@@ -179,7 +188,9 @@ class EvalInterpretSuite extends FunSuite {
   }
 
   test("combine functions") {
-    check("let f = fun x -> x * 2 in let g = fun x -> x + 1 in let combine = fun f1 -> fun f2 -> fun x -> (f1 (f2 x)) in combine g f 1",3)
+      // TODO: Type should be 'Nat()'
+    check("let f = fun x -> x * 2 in let g = fun x -> x + 1 in let combine = fun f1 -> fun f2 -> fun x -> (f1 (f2 x)) in combine g f 1",
+        3, eType = Some(V(6)))
   }
 
   test("iFactorial test") {
@@ -199,16 +210,16 @@ class EvalInterpretSuite extends FunSuite {
         "let iFactorial = fun f2 -> fun n -> ifz n then 1 else (n * (f2 (n-1))) in " +
         "let fact = yCombinator iFactorial in fact "
 
-    check(fact2 + "0",  1)
-    check(fact2 + "1",  1)
-    check(fact2 + "5",  1*2*3*4*5)
+    check(fact2 + "0",  1, eType = None)
+    check(fact2 + "1",  1, eType = None)
+    check(fact2 + "5",  1*2*3*4*5, eType = None)
   }
 
   test("power function (With Y combinator)") {
     check("let yCombinator = fun f -> (fun x -> f (x x)) fun x -> f (x x) in "
         + "let iPower = fun n -> fun f2 -> fun p -> ifz p then 1 else n * (f2 p - 1) in "
         + "let power = fun n -> fun p -> (yCombinator (iPower n) p) in "
-        + "power 2 3", Integer(2*2*2))
+        + "power 2 3", Integer(2*2*2), eType = None)
   }
   
   test("factorial (with fix function)") {
@@ -287,15 +298,15 @@ class EvalInterpretSuite extends FunSuite {
                 "let and = fun a -> fun b -> a b false in " +
                 "let or = fun a -> fun b -> a true b in "
 
-        check(e + " not true", eFalse)
-        check(e + " not false",eTrue)
-        check(e + " and true true", eTrue)
-        check(e + " and true false", eFalse)
-        check(e + " and false true", eFalse)
-        check(e + " and false false", eFalse)
-        check(e + " or true true", eTrue)
-        check(e + " or true false", eTrue)
-        check(e + " or false true", eTrue)
-        check(e + " or false false", eFalse)
+        check(e + " not true", eFalse, eType = Some(V(7)))
+        check(e + " not false",eTrue, eType = Some(V(7)))
+        check(e + " and true true", eTrue, eType = Some(V(11)))
+        check(e + " and true false", eFalse, eType = Some(V(11)))
+        check(e + " and false true", eFalse, eType = Some(V(11)))
+        check(e + " and false false", eFalse, eType = Some(V(11)))
+        check(e + " or true true", eTrue, eType = Some(V(15)))
+        check(e + " or true false", eTrue, eType = Some(V(15)))
+        check(e + " or false true", eTrue, eType = Some(V(15)))
+        check(e + " or false false", eFalse, eType = Some(V(15)))
     }
 }

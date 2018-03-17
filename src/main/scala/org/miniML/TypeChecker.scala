@@ -11,7 +11,7 @@ object TypeChecker {
 
     def apply(e: Expression, env: Environment, equations: Equations): Either[String, (EType, Equations)] = {
 
-        def newVariable(eq: Equations, env: Environment): EType = {
+        def nextIndex(eq: Equations, env: Environment): Int = {
             def maxIndex(t: EType): Int = t match {
                 case Nat() => 0
                 case F(t1, t2) => Math.max(maxIndex(t1), maxIndex(t2))
@@ -21,9 +21,10 @@ object TypeChecker {
 
             val nEquations = eq.foldLeft(0)((a, eq) => Math.max(a, Math.max(maxIndex(eq._1), maxIndex(eq._2))))
             val nEnvironment = env.foldLeft(0)((n, typedExp) => Math.max(n, maxIndex(typedExp._2)))
-            val n = Math.max(nEquations, nEnvironment)
-            V(n + 1)
+            Math.max(nEquations, nEnvironment)
         }
+
+        def newVariable(eq: Equations, env: Environment): EType = V(nextIndex(eq, env) + 1)
 
         def addNatEquation(eq: Equations, e: Expression, t: EType) = addEquation2(eq, e, t, Integer(0), Nat()) match {
             case Right(eq2) => Right(eq2)
@@ -121,7 +122,7 @@ object TypeChecker {
                         rEquations <- addEquation2(equations, funExp, t1, exp, eType)
                     } yield (replaceVariable(t2,rEquations), rEquations)
                     case V(i) =>
-                        val newVar = newVariable(equations, env)
+                        val newVar = V(Math.max(nextIndex(equations, env), i) + 1)
                         for {
                             rEquations <- addEquation(equations, e, V(i) -> F(eType, newVar))
                         } yield (newVar, rEquations)
