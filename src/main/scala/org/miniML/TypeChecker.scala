@@ -141,6 +141,8 @@ object TypeChecker {
             case Fix(id,exp) =>
                 val newVar = newVariable(equations, env)
                 TypeChecker(exp, env+ (id -> newVar), equations)
+
+            case _=> Left(e + " not typable")
         }
     }
 

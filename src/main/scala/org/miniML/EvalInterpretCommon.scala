@@ -27,6 +27,22 @@ trait EvalInterpretCommon {
 
   def fix(fid: Identifier, id: Identifier, funExp: Expression, c: Context, mode: Mode): EExpression
 
+  def cons(head: Expression, tail: Expression, c: Context, mode: Mode): EExpression = mode match {
+    case ByValue => for {
+      headValue <- eval(CExpression(head, c), mode)
+      tailValue <- eval(CExpression(tail, c), mode)
+    } yield CExpression(Cons(headValue.e, tailValue.e), c)
+    case _ => Right(CExpression(Cons(head, tail), c))
+  }
+
+  def head(list: Expression, c: Context, mode: Mode): EExpression =
+    eval(CExpression(list,c), mode) flatMap {
+       listValue => listValue.e match {
+        case Cons(head, _) => eval(CExpression(head,c), mode)
+        case `listValue` => Left(listValue + " has no 'head'")
+      }
+    }
+
   def eval(e:Expression, mode: Mode) : EExpression = eval(CExpression(e, emptyContext), mode)
 
   def eval(exp: CExpression, mode: Mode): EExpression = {
@@ -62,6 +78,9 @@ trait EvalInterpretCommon {
       case Fun(id, funExp) => fun(id, funExp, exp.c, mode)
       case Fix(fId, Fun(Identifier(id),funExp)) => fix(fId, id, funExp, exp.c, mode)
       case Integer(i) => Right(CExpression(Integer(i), emptyContext))
+      case NilList() => Right(CExpression(NilList(), emptyContext))
+      case Cons(head,tail) => cons(head, tail, exp.c, mode)
+      case Head(list) => head(list, exp.c,mode)
       case _ => Left(exp + ": Unable to evaluate")
     }
   }

@@ -10,9 +10,7 @@ import org.miniML.parser._
 import org.miniML.parser.Integer._
 import org.miniML.parser.Identifier._
 
-@RunWith(classOf[JUnitRunner])
-class EvalInterpretSuite extends FunSuite {
-
+object EvalInterpretSuite {
   val ep = new ExpressionParser()
 
   def check(e: String, exp: Expression, mode: Option[Eval.Mode] = None, eType: Option[EType] = Some(Nat())) {
@@ -38,9 +36,9 @@ class EvalInterpretSuite extends FunSuite {
   }
 
   def eAssert(value:Either[String,Eval.CExpression], expected:Expression): Unit = value match {
-      case Right(Eval.CExpression(vExp,_)) => assert(vExp == expected)
-      case Left(s) => assert(false, s)
-    }
+    case Right(Eval.CExpression(vExp,_)) => assert(vExp == expected)
+    case Left(s) => assert(false, s)
+  }
 
   def iAssert(value:Either[String, Interpret.CExpression], expected:Expression): Unit =
     value match {
@@ -58,10 +56,15 @@ class EvalInterpretSuite extends FunSuite {
       assert(r2 == Left(error))
     }
   }
+}
 
+import EvalInterpretSuite._
+
+@RunWith(classOf[JUnitRunner])
+class EvalInterpretSuite extends FunSuite {
 
   test("failed parsing") {
-    checkFailure(")", "Parsing Failed: [1.1] failure: '`('' expected but `)' found\n\n)\n^")
+      checkFailure(")", "Parsing Failed: [1.1] failure: '`('' expected but `)' found\n\n)\n^")
   }
 
   test("addition") {
