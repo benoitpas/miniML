@@ -10,7 +10,7 @@ import scala.util.parsing.combinator.syntactical.StandardTokenParsers
  */
 class ExpressionParser extends StandardTokenParsers {
     lexical.delimiters ++= List("(", ")", "=", "->", "+", "-", "*", "/")
-    lexical.reserved ++= Set("let", "in", "fun", "ifz", "then", "else", "fix", "nil", "cons", "head")
+    lexical.reserved ++= Set("let", "in", "fun", "ifz", "then", "else", "fix", "nil", "cons", "head", "tail", "ifnil")
 
     def identifier: Parser[Identifier] = ident ^^ { Identifier(_) }
 
@@ -39,13 +39,15 @@ class ExpressionParser extends StandardTokenParsers {
 
     def head : Parser[Head] = "head" ~> expression  ^^ { Head }
 
+    def tail : Parser[Tail] = "tail" ~> expression  ^^ { Tail }
+
     def cons : Parser[Cons] = "cons" ~> limitedExpression ~ expression  ^^ { case head ~ tail => Cons(head, tail) }
 
     def ifnil : Parser[Ifnil] = "ifnil" ~> expression ~ "then" ~ expression ~ "else" ~ expression ^^ {
         case cExp ~ _ ~ zExp ~ _ ~ nZExp => Ifnil(cExp, zExp, nZExp)
     }
 
-    def listExpression : Parser[Expression] = nil | head | cons | ifnil
+    def listExpression : Parser[Expression] = nil | head | tail | cons | ifnil
 
     def let : Parser[Let]  = "let" ~> identifier ~ "=" ~ expression ~ "in" ~ expression ^^ {
         case id ~ _ ~ e1 ~ _ ~ e2 => Let(id, e1, e2)
@@ -111,17 +113,21 @@ case class NilList() extends Expression {
     override def toString: String = "nil"
 }
 
-case class Head(l: Expression) extends Expression {
-    override def toString: String = "(head " + l + ")"
-
-}
-
-case class Ifnil(cExp: Expression, zExp: Expression, nZExp: Expression) extends Expression {
-    override def toString: String = "ifz " + cExp + " then " + zExp + " else " + nZExp
-}
-
 case class Cons(head: Expression, tail:Expression) extends Expression {
     override def toString: String = "(cons " + head + " "+ tail + ")"
+}
+
+case class Head(l: Expression) extends Expression {
+    override def toString: String = "(head " + l + ")"
+}
+
+case class Tail(l: Expression) extends Expression {
+    override def toString: String = "(tail " + l + ")"
+}
+
+
+case class Ifnil(cExp: Expression, zExp: Expression, nZExp: Expression) extends Expression {
+    override def toString: String = "ifnil " + cExp + " then " + zExp + " else " + nZExp
 }
 
 case class Let(id: Identifier, e1: Expression, e2: Expression) extends Expression {

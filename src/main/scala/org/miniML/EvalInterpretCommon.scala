@@ -27,27 +27,37 @@ trait EvalInterpretCommon {
 
   def fix(fid: Identifier, id: Identifier, funExp: Expression, c: Context, mode: Mode): EExpression
 
-  def cons(head: Expression, tail: Expression, c: Context, mode: Mode): EExpression = mode match {
-    case ByValue => for {
+  def cons(head: Expression, tail: Expression, c: Context, mode: Mode): EExpression =
+    for {
       headValue <- eval(CExpression(head, c), mode)
       tailValue <- eval(CExpression(tail, c), mode)
     } yield CExpression(Cons(headValue.e, tailValue.e), c)
-    case _ => Right(CExpression(Cons(head, tail), c))
-  }
 
   def head(list: Expression, c: Context, mode: Mode): EExpression =
     eval(CExpression(list,c), mode) flatMap {
        listValue => listValue.e match {
         case Cons(head, _) => eval(CExpression(head,c), mode)
         case `listValue` => Left(listValue + " has no 'head'")
+        case _ => Left(listValue + " is not a list")
       }
     }
 
-  def eval(e:Expression, mode: Mode) : EExpression = eval(CExpression(e, emptyContext), mode)
+    def tail(list: Expression, c: Context, mode: Mode): EvalInterpretCommon.this.EExpression = eval(CExpression(list,c), mode) flatMap {
+        listValue => listValue.e match {
+            case Cons(_, tail) => eval(CExpression(tail,c), mode)
+            case `listValue` => Left(listValue + " empty list")
+            case _ => Left(listValue + " is not a list")
+        }
+    }
 
-  def eval(exp: CExpression, mode: Mode): EExpression = {
+    def eval(e:Expression, mode: Mode) : EExpression = eval(CExpression(e, emptyContext), mode)
+
+
+    def eval(exp: CExpression, mode: Mode): EExpression = {
 
     val notInteger = ": Cannot be evaluated as an integer"
+    val notList = ": Cannot be evaluated as a list"
+
     def combine(exp1: Expression, exp2: Expression, op: (Int,Int) => Int, c:Context) : EExpression =
       (eval(CExpression(exp1,c), mode), eval(CExpression(exp2,c), mode)) match {
         case (Right(CExpression(Integer(i1), _)), Right(CExpression(Integer(i2), _))) => Right(CExpression(Integer(op(i1, i2)), emptyContext))
@@ -57,11 +67,16 @@ trait EvalInterpretCommon {
         case (_,_) => Left(exp1 + notInteger)
       }
 
-    def intEval(exp: Expression, c:Context) = eval(CExpression(exp,c), mode) match {
-      case Right(CExpression(Integer(v),_)) => Right(CExpression(Integer(v),c))
-      case Right(_) => Left(exp + notInteger)
-      case x => x
+    def intEval(exp: Expression, c:Context) = eval(CExpression(exp,c), mode) flatMap {
+      case CExpression(Integer(v),_) => Right(CExpression(Integer(v),c))
+      case _ => Left(exp + notInteger)
     }
+
+      def listEval(exp: Expression, c:Context) = eval(CExpression(exp,c),mode) flatMap {
+          case CExpression(NilList(),_) => Right(CExpression(NilList(),c))
+          case CExpression(Cons(h,t),_) => Right(CExpression(Cons(h,t),c))
+          case _  => Left(exp + notList)
+      }
 
     exp.e match {
       case Product(exp1: Expression, exp2: Expression)         => combine(exp1,exp2, _ * _, exp.c)
@@ -71,6 +86,7 @@ trait EvalInterpretCommon {
       case Identifier(s: String)                               => identifier(s, exp.c, mode)
       case Let(id: Identifier, e1: Expression, e2: Expression) => let(id, e1, e2, exp.c, mode)
       case Ifz(cExp: Expression, zExp: Expression, nzExp: Expression) => intEval(cExp, exp.c) match  {
+              // TODO: replace intEval by eval
         case Right(CExpression(Integer(v),_)) => if (v > 0) intEval(nzExp, exp.c) else intEval(zExp, exp.c)
         case x => x
       }
@@ -79,8 +95,14 @@ trait EvalInterpretCommon {
       case Fix(fId, Fun(Identifier(id),funExp)) => fix(fId, id, funExp, exp.c, mode)
       case Integer(i) => Right(CExpression(Integer(i), emptyContext))
       case NilList() => Right(CExpression(NilList(), emptyContext))
-      case Cons(head,tail) => cons(head, tail, exp.c, mode)
-      case Head(list) => head(list, exp.c,mode)
+      case Cons(head, tail) => cons(head, tail, exp.c, mode)
+      case Head(list) => head(list, exp.c, mode)
+      case Tail(list) => tail(list, exp.c, mode)
+      case Ifnil(cExp, nilExp, nNilExp) => listEval(cExp, exp.c) flatMap {
+          case CExpression(NilList(), _)    => eval(CExpression(nilExp, exp.c), mode)
+          case CExpression(Cons(_, _), _)   => eval(CExpression(nNilExp, exp.c), mode)
+          case CExpression(_,_)             => Left(cExp + notList)
+      }
       case _ => Left(exp + ": Unable to evaluate")
     }
   }

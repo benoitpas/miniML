@@ -14,8 +14,12 @@ object EvalInterpretSuite {
   val ep = new ExpressionParser()
 
   def check(e: String, exp: Expression, mode: Option[Eval.Mode] = None, eType: Option[EType] = Some(Nat())) {
-
-    val t = TypeChecker(ep.parse(e).get)
+    val p = ep.parse(e)
+      if (!p.successful) {
+          println(p.toString)
+      }
+          assert(p.successful)
+    val t = TypeChecker(p.get)
     eType match {
       case Some(et) => assert(t.isRight && t.right.get._1 == et)
       case None => assert(t.isLeft)
@@ -37,13 +41,13 @@ object EvalInterpretSuite {
 
   def eAssert(value:Either[String,Eval.CExpression], expected:Expression): Unit = value match {
     case Right(Eval.CExpression(vExp,_)) => assert(vExp == expected)
-    case Left(s) => assert(false, s)
+    case Left(s) => assert(assertion = false, message = s)
   }
 
   def iAssert(value:Either[String, Interpret.CExpression], expected:Expression): Unit =
     value match {
-      case Right(Interpret.CExpression(vExp,_)) =>assert(  vExp == expected)
-      case Left(s) => assert(false, s)
+      case Right(Interpret.CExpression(vExp,_)) =>assert( vExp == expected)
+      case Left(s) => println(s); assert(assertion = false, message = s)
     }
 
   def checkFailure(e:String, error:String, mode:Option[Eval.Mode] = None) {
