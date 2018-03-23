@@ -4,15 +4,20 @@ import org.miniML.parser._
 import org.scalatest.FunSuite
 import EvalInterpretSuite.check
 
-class ListSuite extends FunSuite{
+class ListSuite extends FunSuite {
+
+    implicit def list2MLList(l: List[Int]) : Expression = l match {
+        case Nil => NilList()
+        case head::tail => Cons(Integer(head),list2MLList(tail))
+    }
 
     // TODO: need to fix type checker to support lists
     test("Empty list") {
-        check("nil", NilList(), eType = None)
+        check("nil", List(), eType = None)
     }
 
     test("One element list") {
-        check("cons 1 nil", Cons(Integer(1), NilList()), eType = None)
+        check("cons 1 nil", List(1), eType = None)
     }
 
     test("Simple head test") {
@@ -20,7 +25,7 @@ class ListSuite extends FunSuite{
     }
 
     test("Simple tail test") {
-        check("tail cons 1 cons 2 nil", Cons(Integer(2), NilList()), eType = None)
+        check("tail cons 1 cons 2 nil", List(2), eType = None)
     }
 
     test("Heterogeneous list evaluation") {
@@ -39,12 +44,16 @@ class ListSuite extends FunSuite{
         val addLast = "let addLast = fix f fun e -> fun l -> (ifnil l then (cons e l) else (cons (head l) (f e (tail l)))) in "
         check(addLast + " addLast 1 nil", Cons(Integer(1),NilList()), eType = None)
         check(addLast + "let l = cons 3 (cons 2 nil) in addLast 1 l",
-            Cons(Integer(3),Cons(Integer(2),Cons(Integer(1),NilList()))), eType = None)
+            List(3,2,1), eType = None)
     }
 
-    //TODO: implement reverse
-    test("reverse function") {
-      val reverse = "fun l -> let "
+    test("reverse function (not efficient implementation)") {
+        val addLast = "let addLast = fix f fun e -> fun l -> (ifnil l then (cons e l) else (cons (head l) (f e (tail l)))) in "
+        val reverse = "let reverse = fix f fun l2 -> ifnil l2 then nil else addLast (head l2) (f tail l2) in "
+        check(addLast + reverse + " reverse nil", List(), eType = None)
+        check(addLast + reverse + " reverse (cons 1 nil)", List(1), eType = None)
+        check(addLast + reverse + " reverse (cons 1 (cons 2 nil))", List(2,1), eType = None)
+        check(addLast + reverse + " reverse (cons 1 (cons 2 (cons 3 nil)))", List(3,2,1), eType = None)
     }
 
     //TODO: add sorting of integer list
