@@ -47,6 +47,14 @@ class ListSuite extends FunSuite {
             List(3,2,1), eType = None)
     }
 
+    test("reverse (tail terminating)") {
+        val reverse = "let reverse = fun l -> (fix f fun l -> fun a -> ifnil l then a else f (tail l) cons (head l) a) l nil in "
+        check(reverse + " reverse nil", List(), eType = None)
+        check(reverse + " reverse (cons 1 nil)", List(1), eType = None)
+        check(reverse + " reverse (cons 1 (cons 2 nil))", List(2,1), eType = None)
+        check(reverse + " reverse (cons 1 (cons 2 (cons 3 nil)))", List(3,2,1), eType = None)
+    }
+
     test("reverse function (not efficient implementation)") {
         val addLast = "let addLast = fix f fun e -> fun l -> (ifnil l then (cons e l) else (cons (head l) (f e (tail l)))) in "
         val reverse = "let reverse = fix f fun l2 -> ifnil l2 then nil else addLast (head l2) (f tail l2) in "
