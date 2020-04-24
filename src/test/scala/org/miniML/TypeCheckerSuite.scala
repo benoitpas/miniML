@@ -2,12 +2,12 @@ package org.miniML
 
 import org.junit.runner.RunWith
 import org.miniML.TypeChecker._
-import org.scalatest.FunSuite
-import org.scalatest.junit.JUnitRunner
+import org.scalatest.funsuite.AnyFunSuite
+import org.scalatestplus.junit.JUnitRunner
 import org.miniML.parser.{ExpressionParser, Integer}
 
 @RunWith(classOf[JUnitRunner])
-class TypeCheckerSuite extends FunSuite {
+class TypeCheckerSuite extends AnyFunSuite {
 
 
     test("integer") {
