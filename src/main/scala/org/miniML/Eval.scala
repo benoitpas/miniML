@@ -28,7 +28,7 @@ object Eval extends EvalInterpretCommon {
         case CExpression(Fun(id1, funExp1), _) =>
           val r = replaceAll(funExp1, id1, v.e); // println("r=" + r.toString());
           eval(r, mode)
-        case _ => Left(funExp + ": Did not evaluate as a function")
+        case _ => Left(funExp.toString + ": Did not evaluate as a function")
       }
     }
 

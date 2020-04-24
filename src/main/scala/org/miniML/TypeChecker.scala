@@ -28,7 +28,7 @@ object TypeChecker {
 
         def addNatEquation(eq: Equations, e: Expression, t: EType) = addEquation2(eq, e, t, Integer(0), Nat()) match {
             case Right(eq2) => Right(eq2)
-            case _ => Left(e + " type should be integer. ")
+            case _ => Left(e.toString + " type should be integer. ")
         }
 
         def checkCompatibility(t1: EType, t2: EType) = (t1, t2) match {
@@ -43,13 +43,13 @@ object TypeChecker {
             if (checkCompatibility(equation._1, equation._2))
                 Right(if (equation._1 == equation._1) equations else equations + equation)
             else
-                Left(e + " is not typable. ")
+                Left(e.toString + " is not typable. ")
 
         def addEquation2(eq: Equations, e1: Expression, t1: EType, e2: Expression, t2: EType): Either[String, Equations] =
             if (checkCompatibility(t1, t2))
                 Right(if (t1 == t2) eq else eq + (t1 -> t2))
             else
-                Left(e1 + " and " + e2 + " have incompatible types (" + t1 + " and " + t2 + "). ")
+                Left(e1.toString + " and " + e2 + " have incompatible types (" + t1 + " and " + t2 + "). ")
 
         def operation(e1: Expression, e2: Expression): Either[String, (EType, Equations)] = {
 
@@ -126,7 +126,7 @@ object TypeChecker {
                         for {
                             rEquations <- addEquation(equations, e, V(i) -> F(eType, newVar))
                         } yield (newVar, rEquations)
-                    case _ => Left(funExp + " should be a function. ")
+                    case _ => Left(funExp.toString + " should be a function. ")
                 }
 
                 TypeChecker(exp, env, equations) flatMap {
@@ -142,7 +142,7 @@ object TypeChecker {
                 val newVar = newVariable(equations, env)
                 TypeChecker(exp, env+ (id -> newVar), equations)
 
-            case _=> Left(e + " not typable")
+            case _=> Left(e.toString + " not typable")
         }
     }
 

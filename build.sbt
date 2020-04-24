@@ -16,6 +16,6 @@ libraryDependencies += "org.scalatest" %% "scalatest" % "3.1.1" % "test"
 libraryDependencies += "org.scalatestplus" %% "scalatestplus-junit" % "1.0.0-M2"
 libraryDependencies += "org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.2"
 
-scalacOptions ++= Seq("-Xmigration","-deprecation")
+scalacOptions ++= Seq(/*"-Xmigration",*/"-deprecation")
 
 EclipseKeys.withSource := true

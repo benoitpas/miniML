@@ -25,7 +25,7 @@ object Interpret extends EvalInterpretCommon {
                 case CExpression(Fun(id1, funExp1), c1) =>
                     val r = CExpression(funExp1, c1 + (id1.toString()-> v))
                     eval(r, mode)
-                case _ => Left(funExp + ": Did not evaluate as a function")
+                case _ => Left(funExp.toString + ": Did not evaluate as a function")
             }
         }
 
@@ -35,7 +35,7 @@ object Interpret extends EvalInterpretCommon {
     def fun(id: Identifier, funExp: Expression, c: Context, mode: Mode): EExpression = Right(CExpression(Fun(id, funExp), c))
 
     def fix(fid: Identifier, id: Identifier, funExp: Expression, c: Context, mode: Mode): EExpression =
-        Right(CExpression(Fun(id, funExp), c + (fid.toString() -> CExpression(Fix(fid, Fun(id, funExp)), c))))
+        Right(CExpression(Fun(id, funExp), c + (fid.toString -> CExpression(Fix(fid, Fun(id, funExp)), c))))
 
 
 }
