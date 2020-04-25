@@ -1,15 +1,15 @@
 
 
 package org.miniML.parser
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
+import org.scalatestplus.junit.JUnitRunner
 
 import org.miniML.parser.Integer._
 import org.miniML.parser.Identifier._
 
 @RunWith(classOf[JUnitRunner])
-class ExpressionParserSuite extends FunSuite {
+class ExpressionParserSuite extends AnyFunSuite {
 
   val ep = new ExpressionParser()
 

@@ -4,8 +4,8 @@ package org.miniML
 
 import org.junit.runner.RunWith
 import org.miniML.TypeChecker.{EType, F, Nat, V}
-import org.scalatest.FunSuite
-import org.scalatest.junit.JUnitRunner
+import org.scalatest.funsuite.AnyFunSuite
+import org.scalatestplus.junit.JUnitRunner
 import org.miniML.parser._
 import org.miniML.parser.Integer._
 import org.miniML.parser.Identifier._
@@ -65,10 +65,10 @@ object EvalInterpretSuite {
 import EvalInterpretSuite._
 
 @RunWith(classOf[JUnitRunner])
-class EvalInterpretSuite extends FunSuite {
+class EvalInterpretSuite extends AnyFunSuite {
 
   test("failed parsing") {
-      checkFailure(")", "Parsing Failed: [1.1] failure: '`('' expected but `)' found\n\n)\n^")
+      checkFailure(")", "Parsing Failed: [1.1] failure: ''('' expected but ')' found\n\n)\n^")
   }
 
   test("addition") {

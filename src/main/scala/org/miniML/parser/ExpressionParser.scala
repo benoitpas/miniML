@@ -78,19 +78,19 @@ sealed trait Expression {
 }
 
 case class Product(e1: Expression, e2: Expression) extends Expression {
-    override def toString: String = e1 + " * " + e2
+    override def toString: String = e1.toString + " * " + e2
 }
 
 case class Division(e1: Expression, e2: Expression) extends Expression {
-    override def toString: String = e1 + " / " + e2
+    override def toString: String = e1.toString + " / " + e2
 }
 
 case class Sum(e1: Expression, e2: Expression) extends Expression {
-    override def toString: String = e1 + " + " + e2
+    override def toString: String = e1.toString + " + " + e2
 }
 
 case class Minus(e1: Expression, e2: Expression) extends Expression {
-    override def toString: String = e1 + " - " + e2
+    override def toString: String = e1.toString + " - " + e2
 }
 
 case class Identifier(s: String) extends Expression {
