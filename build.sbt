@@ -1,7 +1,7 @@
 lazy val commonSettings = Seq(
   organization := "com.rawpack",
   version := "0.1.0",
-  scalaVersion := "2.13.3"
+  scalaVersion := "2.13.4"
 )
 
 lazy val root = (project in file(".")).
