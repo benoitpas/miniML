@@ -13,7 +13,7 @@ import org.miniML.parser.Identifier._
 object EvalInterpretSuite {
   val ep = new ExpressionParser()
 
-  def check(e: String, exp: Expression, mode: Option[Eval.Mode] = None, eType: Option[EType] = Some(Nat())) {
+  def check(e: String, exp: Expression, mode: Option[Eval.Mode] = None, eType: Option[EType] = Some(Nat())): Unit = {
     val p = ep.parse(e)
       if (!p.successful) {
           println(p.toString)
@@ -50,7 +50,7 @@ object EvalInterpretSuite {
       case Left(s) => println(s); assert(assertion = false, message = s)
     }
 
-  def checkFailure(e:String, error:String, mode:Option[Eval.Mode] = None) {
+  def checkFailure(e:String, error:String, mode:Option[Eval.Mode] = None):Unit = {
     if (mode.isEmpty || mode.contains(Eval.ByName)) {
       val r1 = Eval(e, Eval.ByName)
       assert(r1 == Left(error))

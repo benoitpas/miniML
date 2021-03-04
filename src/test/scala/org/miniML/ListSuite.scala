@@ -1,10 +1,10 @@
 package org.miniML
 
 import org.miniML.parser._
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 import EvalInterpretSuite.check
 
-class ListSuite extends FunSuite {
+class ListSuite extends AnyFunSuite {
 
     implicit def list2MLList(l: List[Int]) : Expression = l match {
         case Nil => NilList()
