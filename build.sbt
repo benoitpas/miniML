@@ -14,7 +14,7 @@ libraryDependencies += "junit" % "junit" % "4.10" % "test"
 libraryDependencies += "org.scalactic" %% "scalactic" % "3.1.1"
 libraryDependencies += "org.scalatest" %% "scalatest" % "3.1.1" % "test"
 libraryDependencies += "org.scalatestplus" %% "scalatestplus-junit" % "1.0.0-M2"
-libraryDependencies += "org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.2"
+libraryDependencies += "org.scala-lang.modules" %% "scala-parser-combinators" % "2.0.0"
 
 scalacOptions ++= Seq(/*"-Xmigration",*/"-deprecation")
 
